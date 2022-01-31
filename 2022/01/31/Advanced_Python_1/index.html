@@ -20,20 +20,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="在python中实现类型注解，可以有效地帮助你提升代码质量，让你的代码功能模块更加清晰，让编辑器可以更早地发现代码中的问题，这篇文章对typing类型检查做了一个简要的笔记。">
+  <meta name="description" content="从头学习学习YouTube上的Advanced Python视频，第一篇相关数据结构内容, List and Tuple.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python中使用typing进行类型检查">
-<meta property="og:url" content="http://example.com/2022/01/30/python_typing/index.html">
+<meta property="og:title" content="Advanced Python Learning (1): List and Tuple">
+<meta property="og:url" content="http://example.com/2022/01/31/Advanced_Python_1/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="在python中实现类型注解，可以有效地帮助你提升代码质量，让你的代码功能模块更加清晰，让编辑器可以更早地发现代码中的问题，这篇文章对typing类型检查做了一个简要的笔记。">
+<meta property="og:description" content="从头学习学习YouTube上的Advanced Python视频，第一篇相关数据结构内容, List and Tuple.">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2022-01-30T05:45:04.000Z">
-<meta property="article:modified_time" content="2022-01-30T08:30:50.927Z">
+<meta property="article:published_time" content="2022-01-31T02:33:05.000Z">
+<meta property="article:modified_time" content="2022-01-31T02:44:48.152Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="Python">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2022/01/30/python_typing/">
+<link rel="canonical" href="http://example.com/2022/01/31/Advanced_Python_1/">
 
 
 <script id="page-configurations">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>Python中使用typing进行类型检查 | RenTianhe's Blog</title>
+  <title>Advanced Python Learning (1): List and Tuple | RenTianhe's Blog</title>
   
 
 
@@ -177,7 +177,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/30/python_typing/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/31/Advanced_Python_1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -190,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Python中使用typing进行类型检查
+          Advanced Python Learning (1): List and Tuple
         </h1>
 
         <div class="post-meta">
@@ -201,7 +201,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2022-01-30 13:45:04 / Modified: 16:30:50" itemprop="dateCreated datePublished" datetime="2022-01-30T13:45:04+08:00">2022-01-30</time>
+              <time title="Created: 2022-01-31 10:33:05 / Modified: 10:44:48" itemprop="dateCreated datePublished" datetime="2022-01-31T10:33:05+08:00">2022-01-31</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -226,14 +226,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>928</span>
+              <span>1.7k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>1 mins.</span>
+              <span>2 mins.</span>
             </span>
 
         </div>
@@ -245,48 +245,43 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>在python中实现类型注解，可以有效地帮助你提升代码质量，让你的代码功能模块更加清晰，让编辑器可以更早地发现代码中的问题，这篇文章对typing类型检查做了一个简要的笔记。</p>
+        <p>从头学习学习YouTube上的Advanced Python视频，第一篇相关数据结构内容, List and Tuple.</p>
 <span id="more"></span>
 
-<h3 id="Notes-Online"><a href="#Notes-Online" class="headerlink" title="Notes Online"></a>Notes Online</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://www.dusaiphoto.com/article/164/">Python类型注解</a></li>
-</ul>
-<h3 id="Typing模块的功能"><a href="#Typing模块的功能" class="headerlink" title="Typing模块的功能"></a>Typing模块的功能</h3><ul>
-<li>Python中的typing模块可以提供<code>类型检查功能</code>，方便用户<code>确定传入和返回的参数类型</code></li>
-<li>这个模块不会影响正常的程序执行，只会报提醒，不会报正式错误</li>
-<li>只能在python版本大于3.5时才能使用</li>
-</ul>
-<h3 id="typing常用类型"><a href="#typing常用类型" class="headerlink" title="typing常用类型"></a>typing常用类型</h3><ul>
-<li><code>int、long、float</code>：整型、长整形、浮点型</li>
-<li><code>bool、str</code>：布尔型、字符串类型</li>
-<li><code>List、 Tuple、 Dict、 Set</code>：列表、元组、字典、集合</li>
-<li><code>Iterable、Iterator</code>：可迭代类型、迭代器类型</li>
-<li><code>Generator</code>：生成器类型</li>
-</ul>
-<h3 id="复合注解类型"><a href="#复合注解类型" class="headerlink" title="复合注解类型"></a>复合注解类型</h3><p>在用<code>List</code>, <code>Dict</code>等不能说明内部元素等具体类型时，需要用到复合类型</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">List</span>, <span class="type">Dict</span>, <span class="type">Tuple</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 参数1: 元素为 int 的列表</span></span><br><span class="line"><span class="comment"># 参数2: 键为字符串，值为 int 的字典</span></span><br><span class="line"><span class="comment"># 返回值: 包含两个元素的元组</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mix</span>(<span class="params">scores: <span class="type">List</span>[<span class="built_in">int</span>], ages: <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="built_in">int</span>]</span>) -&gt; <span class="type">Tuple</span>[<span class="built_in">int</span>, <span class="built_in">int</span>]:</span></span><br><span class="line">    <span class="keyword">return</span> (<span class="number">0</span>, <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="List"><a href="#List" class="headerlink" title="List"></a>List</h2><h3 id="简单用法"><a href="#简单用法" class="headerlink" title="简单用法"></a>简单用法</h3><ol>
+<li><code>x = list.pop()</code>, 移出最后一个元素并返回</li>
+<li><code>list.sort()</code>, 改变原来list内的值的顺序，如果不希望改变原list内的顺序，而是得到一个新的list的话，可以使用<code>x = sorted(list)</code></li>
+<li><code>list.remove(name)</code>, 移除某个指定的元素</li>
+<li>快速创建包含5个0的list: <code>list = [0] * 5</code></li>
+<li>快速组合两个list: <code>list1 + list2</code></li>
+<li>数组切片: <code>list[1:5]</code> 返回<code>index[1]</code>到<code>index[4]</code>的数字</li>
+<li>按一定的step访问list: <code>list = [::2]</code>,  数组反转: <code>list = list[::-1]</code></li>
+</ol>
+<h3 id="需要注意的一些细节"><a href="#需要注意的一些细节" class="headerlink" title="需要注意的一些细节"></a>需要注意的一些细节</h3><p>列表直接赋值(a&#x3D;b)的话共享内存，对b的操作也会影响到a</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">list_a = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">list_b = list_a</span><br><span class="line">list_b.append(<span class="number">4</span>)</span><br><span class="line"><span class="built_in">print</span>(list_a) <span class="comment"># [1, 2, 3, 4]</span></span><br></pre></td></tr></table></figure>
+<p>几种解决办法:</p>
 <ul>
-<li>Tuple[int, int]表示两个元素的元组</li>
-<li>Tuple[int]表示元素为int的元组</li>
+<li>调用内置的list函数: <code>list_b = list(list_a)</code></li>
+<li>使用copy方法: <code>list_b = list_a.copy()</code></li>
+<li>使用切片: <code>list_b = list_a[:]</code></li>
 </ul>
-<h3 id="以下为一些特殊typing类型的使用"><a href="#以下为一些特殊typing类型的使用" class="headerlink" title="以下为一些特殊typing类型的使用"></a>以下为一些特殊typing类型的使用</h3><details>
-<summary> <b> Optional </b> </summary>
+<h3 id="高级创建数组方式"><a href="#高级创建数组方式" class="headerlink" title="高级创建数组方式"></a>高级创建数组方式</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">list_a = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]</span><br><span class="line">b = [x*<span class="number">2</span> <span class="keyword">for</span> x <span class="keyword">in</span> list_a]</span><br></pre></td></tr></table></figure>
 
-<p>对于函数<code>可能返回None，也可能返回其他值</code>的情况，可以用Optional</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">Optional</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">foo</span>(<span class="params">a: <span class="built_in">int</span> = <span class="number">0</span></span>) -&gt; <span class="type">Optional</span>[<span class="built_in">str</span>]:</span></span><br><span class="line">    <span class="keyword">if</span> a == <span class="number">1</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;Yeah&#x27;</span></span><br></pre></td></tr></table></figure>
-</details>
-
-<details>
-<summary> <b> Union </b> </summary>
-
-<p>对于函数<code>返回值是多种类型中的一种时</code>的情况</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">Union</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">foo</span>() -&gt; <span class="type">Union</span>[<span class="built_in">str</span>, <span class="built_in">int</span>, <span class="built_in">float</span>]:</span></span><br><span class="line">    <span class="comment"># ....</span></span><br><span class="line">    <span class="comment"># some code here</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>这个函数可以返回<code>字符串，整型和浮点型</code></li>
-<li><code>Optional</code>其实是<code>Union</code>的特例，<code>Optional[X]</code>等价于<code>Optional[X, None]</code></details></li>
+<h2 id="Tuple"><a href="#Tuple" class="headerlink" title="Tuple"></a>Tuple</h2><p>Tuple特性: ordered, immutable, allows duplicate elements</p>
+<h3 id="简单用法-1"><a href="#简单用法-1" class="headerlink" title="简单用法"></a>简单用法</h3><ul>
+<li>内置tuple接口创建tuple: <code>mytuple = tuple([&quot;Max&quot;, 28, &quot;Boston&quot;])</code></li>
+<li>检查是否包含某个元素: <code>if &quot;Max&quot; in mytuple</code></li>
+<li>检查某个元素的数量, <code>tuple.count(name)</code>:<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">my_tuple = (<span class="string">&#x27;a&#x27;</span>, <span class="string">&#x27;p&#x27;</span>, <span class="string">&#x27;p&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;e&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(my_tuple.count(<span class="string">&#x27;p&#x27;</span>)) <span class="comment"># 2</span></span><br></pre></td></tr></table></figure></li>
+<li>检查某个元素的index<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">my_tuple = (<span class="string">&#x27;a&#x27;</span>, <span class="string">&#x27;p&#x27;</span>, <span class="string">&#x27;p&#x27;</span>, <span class="string">&#x27;l&#x27;</span>, <span class="string">&#x27;e&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(my_tuple.index(<span class="string">&#x27;p&#x27;</span>)) <span class="comment"># 返回1, 仅仅返回这个元素第一次出现的index</span></span><br></pre></td></tr></table></figure></li>
+<li>同样也可以像List一样，进行索引切片: <code>my_tuple[::-1]</code></li>
 </ul>
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://www.dusaiphoto.com/article/164/">Python类型注解</a></li>
+<h3 id="小细节"><a href="#小细节" class="headerlink" title="小细节"></a>小细节</h3><ul>
+<li>创建tuple的时候只有一个元素，不加逗号的话，是str类型:<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mytuple = (<span class="string">&quot;Max&quot;</span>) <span class="comment"># type: <span class="built_in">str</span></span></span><br><span class="line">mytuple = (<span class="string">&quot;Max&quot;</span>, ) <span class="comment"># type: <span class="built_in">tuple</span></span></span><br></pre></td></tr></table></figure></li>
+<li>使用tuple给变量赋值<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">my_tuple = (<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line">a, b, c, d = my_tuple</span><br><span class="line"><span class="built_in">print</span>(a) <span class="comment"># 0</span></span><br><span class="line"></span><br><span class="line">my_tuple = (<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line">a, *b, c = my_tuple</span><br><span class="line"><span class="built_in">print</span>(b) <span class="comment"># [1, 2], 得到一个list</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="使用tuple的好处-More-Efficient"><a href="#使用tuple的好处-More-Efficient" class="headerlink" title="使用tuple的好处: More Efficient"></a>使用tuple的好处: More Efficient</h3><ul>
+<li>占用的内存比List小<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">my_list = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="string">&quot;hello&quot;</span>, <span class="literal">True</span>]</span><br><span class="line">my_tuple = (<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="string">&quot;hello&quot;</span>, <span class="literal">True</span>)</span><br><span class="line"><span class="built_in">print</span>(sys.getsizeof(my_list), <span class="string">&quot;bytes&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(sys.getsizeof(my_tuple), <span class="string">&quot;bytes&quot;</span>) <span class="comment"># tuple所占显存更小</span></span><br></pre></td></tr></table></figure></li>
+<li>创建tuple的速度比list要快很多<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> timeit</span><br><span class="line"><span class="built_in">print</span>(timeit.timeit(stmt=<span class="string">&quot;[0, 1, 2, 3, 4]&quot;</span>, number=<span class="number">1000000</span>))</span><br><span class="line"><span class="built_in">print</span>(timeit.timeit(stmt=<span class="string">&quot;(0, 1, 2, 3, 4)&quot;</span>, number=<span class="number">1000000</span>))</span><br></pre></td></tr></table></figure></li>
 </ul>
 
     </div>
@@ -305,11 +300,11 @@
 
         
     <div class="post-nav">
-      <div class="post-nav-item"></div>
       <div class="post-nav-item">
-    <a href="/2022/01/30/coco_data/" rel="next" title="COCO数据集的标注格式">
-      COCO数据集的标注格式 <i class="fa fa-chevron-right"></i>
+    <a href="/2022/01/30/AcWing_CPP_Basic/" rel="prev" title="AcWing C++基础语法(一) 变量、输入输出、表达式和顺序语句">
+      <i class="fa fa-chevron-left"></i> AcWing C++基础语法(一) 变量、输入输出、表达式和顺序语句
     </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -368,7 +363,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Notes-Online"><span class="nav-number">1.</span> <span class="nav-text">Notes Online</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Typing%E6%A8%A1%E5%9D%97%E7%9A%84%E5%8A%9F%E8%83%BD"><span class="nav-number">2.</span> <span class="nav-text">Typing模块的功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#typing%E5%B8%B8%E7%94%A8%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">typing常用类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%8D%E5%90%88%E6%B3%A8%E8%A7%A3%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">复合注解类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A5%E4%B8%8B%E4%B8%BA%E4%B8%80%E4%BA%9B%E7%89%B9%E6%AE%8Atyping%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-number">5.</span> <span class="nav-text">以下为一些特殊typing类型的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">6.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#List"><span class="nav-number">1.</span> <span class="nav-text">List</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%94%A8%E6%B3%95"><span class="nav-number">1.1.</span> <span class="nav-text">简单用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82"><span class="nav-number">1.2.</span> <span class="nav-text">需要注意的一些细节</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AB%98%E7%BA%A7%E5%88%9B%E5%BB%BA%E6%95%B0%E7%BB%84%E6%96%B9%E5%BC%8F"><span class="nav-number">1.3.</span> <span class="nav-text">高级创建数组方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tuple"><span class="nav-number">2.</span> <span class="nav-text">Tuple</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%94%A8%E6%B3%95-1"><span class="nav-number">2.1.</span> <span class="nav-text">简单用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%8F%E7%BB%86%E8%8A%82"><span class="nav-number">2.2.</span> <span class="nav-text">小细节</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8tuple%E7%9A%84%E5%A5%BD%E5%A4%84-More-Efficient"><span class="nav-number">2.3.</span> <span class="nav-text">使用tuple的好处: More Efficient</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
