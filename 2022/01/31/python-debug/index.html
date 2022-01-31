@@ -20,20 +20,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="本篇文章针对COCO数据集的标注进行了简要介绍">
+  <meta name="description" content="记录一下Python中如果报错找不到Module时的解决方案">
 <meta property="og:type" content="article">
-<meta property="og:title" content="COCO数据集的标注格式">
-<meta property="og:url" content="http://example.com/2022/01/30/coco_data/index.html">
+<meta property="og:title" content="Python报错找不到Module的解决方案">
+<meta property="og:url" content="http://example.com/2022/01/31/python-debug/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="本篇文章针对COCO数据集的标注进行了简要介绍">
+<meta property="og:description" content="记录一下Python中如果报错找不到Module时的解决方案">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2022-01-30T06:34:04.000Z">
-<meta property="article:modified_time" content="2022-01-31T02:44:12.558Z">
+<meta property="article:published_time" content="2022-01-31T04:31:01.000Z">
+<meta property="article:modified_time" content="2022-01-31T04:59:54.994Z">
 <meta property="article:author" content="Ren Tianhe">
-<meta property="article:tag" content="Python">
+<meta property="article:tag" content="debug">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2022/01/30/coco_data/">
+<link rel="canonical" href="http://example.com/2022/01/31/python-debug/">
 
 
 <script id="page-configurations">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>COCO数据集的标注格式 | RenTianhe's Blog</title>
+  <title>Python报错找不到Module的解决方案 | RenTianhe's Blog</title>
   
 
 
@@ -177,7 +177,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/30/coco_data/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/31/python-debug/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -190,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          COCO数据集的标注格式
+          Python报错找不到Module的解决方案
         </h1>
 
         <div class="post-meta">
@@ -199,23 +199,17 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2022-01-30 14:34:04" itemprop="dateCreated datePublished" datetime="2022-01-30T14:34:04+08:00">2022-01-30</time>
+              <time title="Created: 2022-01-31 12:31:01 / Modified: 12:59:54" itemprop="dateCreated datePublished" datetime="2022-01-31T12:31:01+08:00">2022-01-31</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-01-31 10:44:12" itemprop="dateModified" datetime="2022-01-31T10:44:12+08:00">2022-01-31</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">In</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Object-Detection/" itemprop="url" rel="index"><span itemprop="name">Object Detection</span></a>
+                  <a href="/categories/Debug-Record/" itemprop="url" rel="index"><span itemprop="name">Debug Record</span></a>
                 </span>
             </span>
 
@@ -232,14 +226,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.5k</span>
+              <span>1.7k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>1 mins.</span>
+              <span>2 mins.</span>
             </span>
 
         </div>
@@ -251,28 +245,27 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>本篇文章针对COCO数据集的标注进行了简要介绍</p>
+        <p>记录一下Python中如果报错找不到Module时的解决方案</p>
 <span id="more"></span>
 
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/70878433">COCO数据集的简单介绍</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/84214563">COCO数据集以及COCOAPI</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/110676412">MSCOCO物体检测评测系统的分析</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/29393415"><strong>COCO数据集的标注形式</strong></a></li>
-<li><a target="_blank" rel="noopener" href="https://tangh.github.io/articles/coco-and-cityscapes-datasets/"><strong>*COCO 和 CityScapes 数据集的标注格式和使用</strong></a></li>
+<h2 id="python的工作路径"><a href="#python的工作路径" class="headerlink" title="python的工作路径"></a>python的工作路径</h2><ul>
+<li>获取python进程的工作路径, 进程的工作路径取决于在哪里执行这个文件, 如果是<code>python test.py</code>, 那么工作路径就是<code>./</code>, 如果是<code>python test/test.py</code>, 那么工作路径就是<code>/test</code><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="built_in">print</span>(os.getcwd()) <span class="comment"># current work dir</span></span><br></pre></td></tr></table></figure></li>
+<li>修改工作路径<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line">os.chdir(<span class="string">&quot;/home&quot;</span>)</span><br></pre></td></tr></table></figure></li>
+<li>工作路径主要影响程序里使用的相对路径<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 例如在保存文件时</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="built_in">open</span>(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;w&quot;</span>).close() <span class="comment"># 创建一个test.txt文件</span></span><br><span class="line">os.chdir(<span class="string">&quot;/home&quot;</span>)</span><br><span class="line"><span class="built_in">open</span>(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;w&quot;</span>).close() <span class="comment"># 在/home下创建一个test.txt</span></span><br></pre></td></tr></table></figure></li>
 </ul>
-<h3 id="最顶层形式"><a href="#最顶层形式" class="headerlink" title="最顶层形式"></a>最顶层形式</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;info&quot;: info,</span><br><span class="line">    &quot;licenses&quot;: [license],</span><br><span class="line">    &quot;images&quot;: [image],</span><br><span class="line">    &quot;annotations&quot;: [annotation],</span><br><span class="line">    &quot;categories&quot;: [category]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li><code>images</code>字段列表长度等于数据集<code>(train2014, val2014,...)</code>中的图片数量</li>
-<li><code>annotations</code>字段列表长度等于数据集中的bbox数量</li>
-<li><code>categories</code>字段列表长度等价于类别的数量，coco2017中为80类<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>ann_train_file=<span class="string">&#x27;annotations/instances_train2017.json&#x27;</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>coco_train = COCO(ann_train_file)</span><br><span class="line">loading annotations into memory...</span><br><span class="line">Done (t=<span class="number">19.30</span>s)</span><br><span class="line">creating index...</span><br><span class="line">index created!</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">len</span>(coco_train.dataset[<span class="string">&#x27;categories&#x27;</span>])</span><br><span class="line"><span class="number">80</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">len</span>(coco_train.dataset[<span class="string">&#x27;images&#x27;</span>])</span><br><span class="line"><span class="number">118287</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">len</span>(coco_train.dataset[<span class="string">&#x27;annotations&#x27;</span>])</span><br><span class="line"><span class="number">860001</span></span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
-<h3 id="子层中的形式"><a href="#子层中的形式" class="headerlink" title="子层中的形式"></a>子层中的形式</h3><h4 id="images中每个数据的形式"><a href="#images中每个数据的形式" class="headerlink" title="images中每个数据的形式"></a>images中每个数据的形式</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> data[<span class="string">&quot;images&quot;</span>][<span class="number">0</span>]:</span><br><span class="line">    <span class="built_in">print</span>(k)</span><br><span class="line">-----------------------------</span><br><span class="line">license</span><br><span class="line">file_name</span><br><span class="line">coco_url</span><br><span class="line">height</span><br><span class="line">width</span><br><span class="line">date_captured</span><br><span class="line">flickr_url</span><br><span class="line"><span class="built_in">id</span></span><br></pre></td></tr></table></figure></li>
+<h2 id="python报错找不到Module的解决方案"><a href="#python报错找不到Module的解决方案" class="headerlink" title="python报错找不到Module的解决方案"></a>python报错找不到Module的解决方案</h2><h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>假设我们的目录结构为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">|--vision</span><br><span class="line">    |--flowvision</span><br><span class="line">        |--models</span><br><span class="line">            |--convnext.py</span><br><span class="line">|--project</span><br><span class="line">    |--benchmark</span><br><span class="line">        |--classification</span><br><span class="line">            |--debug.py</span><br></pre></td></tr></table></figure>
+<p>假设在<code>debug.py</code>中我们使用了这样的一段代码, 并且我们在<code>project/benchmark/classification/</code>下执行<code>python debug.py</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> flowvision</span><br><span class="line">model = flowvision.models.convnext_tiny_224()</span><br><span class="line"><span class="built_in">print</span>(model)</span><br></pre></td></tr></table></figure>
+<p>报错<code>ModuleNotFoundError: No module named &#39;flowvision&#39;</code></p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><ul>
+<li>首先使用<code>sys.path</code>查看当前执行的代码里，可以找到的module有哪些<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="built_in">print</span>(sys.path)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[&#x27;/home/rentianhe/code/OneFlow-Models/vision/projects/benchmark/classification&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python37.zip&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7/lib-dynload&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7/site-packages&#x27;, &#x27;/home/rentianhe/code/OneFlow-Models/libai&#x27;]</span><br></pre></td></tr></table></figure>
+我们得到了当前执行的代码里可用的module，可以看到，第一个是<code>&#39;/home/rentianhe/code/OneFlow-Models/vision/projects/benchmark/classification&#39;</code>，表示我们当前执行的路径下，没有vision的路径，所以就无法找到flowvision这个module</li>
+<li>手动将vision这个module添加到<code>sys.path</code>中<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">sys.path.append(<span class="string">&quot;/home/rentianhe/code/OneFlow-Models/vision/&quot;</span>)</span><br><span class="line"><span class="keyword">import</span> flowvision</span><br><span class="line">model = flowvision.models.convnext_tiny_224()</span><br></pre></td></tr></table></figure>
+再次执行，发现成功了，这时候我们已经把vision这个module添加到了sys.path中，所以可以找到vision下的flowvision模块</li>
 </ul>
-<h4 id="annotations中的每个数据形式，这是最重要的"><a href="#annotations中的每个数据形式，这是最重要的" class="headerlink" title="annotations中的每个数据形式，这是最重要的"></a>annotations中的每个数据形式，这是最重要的</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> data[<span class="string">&quot;annotations &quot;</span>][<span class="number">0</span>]:</span><br><span class="line">    <span class="built_in">print</span>(k)</span><br><span class="line">------------------------------------</span><br><span class="line">segmentation</span><br><span class="line">area</span><br><span class="line">iscrowd</span><br><span class="line">image_id</span><br><span class="line">bbox</span><br><span class="line">category_id</span><br><span class="line"><span class="built_in">id</span></span><br></pre></td></tr></table></figure>
-<p>各个数据的标注格式</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">annotation&#123;</span><br><span class="line">    &quot;id&quot;: int,    </span><br><span class="line">    &quot;image_id&quot;: int,</span><br><span class="line">    &quot;category_id&quot;: int,</span><br><span class="line">    &quot;segmentation&quot;: RLE or [polygon],</span><br><span class="line">    &quot;area&quot;: float,</span><br><span class="line">    &quot;bbox&quot;: [x,y,width,height],</span><br><span class="line">    &quot;iscrowd&quot;: 0 or 1,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h4 id="categories中的每个数据格式"><a href="#categories中的每个数据格式" class="headerlink" title="categories中的每个数据格式"></a>categories中的每个数据格式</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> data[<span class="string">&quot;categories&quot;</span>][<span class="number">0</span>]:</span><br><span class="line">    <span class="built_in">print</span>(k)</span><br><span class="line">-----------------------------------</span><br><span class="line">supercategory</span><br><span class="line"><span class="built_in">id</span></span><br><span class="line">name</span><br></pre></td></tr></table></figure>
     </div>
 
     
@@ -281,7 +274,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/debug/" rel="tag"># debug</a>
           </div>
 
         
@@ -290,13 +283,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/01/30/python_typing/" rel="prev" title="Python中使用typing进行类型检查">
-      <i class="fa fa-chevron-left"></i> Python中使用typing进行类型检查
+    <a href="/2022/01/31/Advanced_Python_1/" rel="prev" title="Advanced Python Learning (1): List and Tuple">
+      <i class="fa fa-chevron-left"></i> Advanced Python Learning (1): List and Tuple
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2022/01/30/AcWing_CPP_Basic/" rel="next" title="AcWing C++基础语法(一) 变量、输入输出、表达式和顺序语句">
-      AcWing C++基础语法(一) 变量、输入输出、表达式和顺序语句 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -355,7 +345,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">1.</span> <span class="nav-text">Reference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E9%A1%B6%E5%B1%82%E5%BD%A2%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">最顶层形式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%90%E5%B1%82%E4%B8%AD%E7%9A%84%E5%BD%A2%E5%BC%8F"><span class="nav-number">3.</span> <span class="nav-text">子层中的形式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#images%E4%B8%AD%E6%AF%8F%E4%B8%AA%E6%95%B0%E6%8D%AE%E7%9A%84%E5%BD%A2%E5%BC%8F"><span class="nav-number">3.1.</span> <span class="nav-text">images中每个数据的形式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#annotations%E4%B8%AD%E7%9A%84%E6%AF%8F%E4%B8%AA%E6%95%B0%E6%8D%AE%E5%BD%A2%E5%BC%8F%EF%BC%8C%E8%BF%99%E6%98%AF%E6%9C%80%E9%87%8D%E8%A6%81%E7%9A%84"><span class="nav-number">3.2.</span> <span class="nav-text">annotations中的每个数据形式，这是最重要的</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#categories%E4%B8%AD%E7%9A%84%E6%AF%8F%E4%B8%AA%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F"><span class="nav-number">3.3.</span> <span class="nav-text">categories中的每个数据格式</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#python%E7%9A%84%E5%B7%A5%E4%BD%9C%E8%B7%AF%E5%BE%84"><span class="nav-number">1.</span> <span class="nav-text">python的工作路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python%E6%8A%A5%E9%94%99%E6%89%BE%E4%B8%8D%E5%88%B0Module%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">2.</span> <span class="nav-text">python报错找不到Module的解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">2.0.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">2.0.2.</span> <span class="nav-text">解决方案</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
