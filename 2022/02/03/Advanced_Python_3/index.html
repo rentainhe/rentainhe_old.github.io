@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="从头学习学习YouTube上的Advanced Python视频，第三篇内容: Shallow vs Deep Copy.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Advanced Python Learning (3): Shallow vs Deep Copying in Python">
+<meta property="og:url" content="http://example.com/2022/02/03/Advanced_Python_3/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="从头学习学习YouTube上的Advanced Python视频，第三篇内容: Shallow vs Deep Copy.">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-02-03T15:36:35.000Z">
+<meta property="article:modified_time" content="2022-02-03T16:32:21.053Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/02/03/Advanced_Python_3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Advanced Python Learning (3): Shallow vs Deep Copying in Python | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">3</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">4</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">7</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/02/03/Advanced_Python_3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Advanced Python Learning (3): Shallow vs Deep Copying in Python
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-02-03 23:36:35" itemprop="dateCreated datePublished" datetime="2022-02-03T23:36:35+08:00">2022-02-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-02-04 00:32:21" itemprop="dateModified" datetime="2022-02-04T00:32:21+08:00">2022-02-04</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python-Learning/" itemprop="url" rel="index"><span itemprop="name">Python Learning</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>2.4k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>2 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>从头学习学习YouTube上的Advanced Python视频，第三篇内容: Shallow vs Deep Copy.</p>
+<span id="more"></span>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/playlist?list=PLqnslRFeH2UqLwzS0AwKDKLrpYBKzLBy2">相关视频学习资料 from YouTube</a></li>
+</ul>
+<h2 id="Python中的immutable和mutable对象"><a href="#Python中的immutable和mutable对象" class="headerlink" title="Python中的immutable和mutable对象"></a>Python中的immutable和mutable对象</h2><ul>
+<li><p>immutable: 不可变对象, 通常包括int, float, double, tuple, string等</p>
+</li>
+<li><p>mutable: 可变对象, 通常包括list, dict等</p>
+</li>
+<li><p><strong>不可变对象例子</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">a = <span class="number">5</span></span><br><span class="line">a = <span class="number">10</span></span><br><span class="line"><span class="comment"># 首先我们定义了一个5，然后再赋值10，这里的操作是新生成一个int对象10，让a指向它</span></span><br><span class="line"><span class="comment"># 再把员阿里的5丢弃，而不是改变a的值，相当于新生成了a</span></span><br><span class="line"><span class="built_in">str</span> = <span class="string">&#x27;sss&#x27;</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">id</span>(<span class="built_in">str</span>))</span><br><span class="line"><span class="built_in">str</span> += <span class="string">&#x27;d&#x27;</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">id</span>(<span class="built_in">str</span>)) <span class="comment"># 可以看到这两个的id是不同的，所以这里是新生成了一个str</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>可变对象例子</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">my_list = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">id</span>(my_list))</span><br><span class="line">my_list[<span class="number">2</span>] = <span class="number">5</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">id</span>(my_list)) <span class="comment"># 这两个的id是一样的，所以可变对象是其内部的一部分值发生改变了，但是对象本身不变</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">my_list = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">cpy = my_list</span><br><span class="line">cpy[<span class="number">0</span>] = <span class="number">5</span></span><br><span class="line"><span class="built_in">print</span>(my_list) <span class="comment"># [5, 2, 3, 4]</span></span><br><span class="line"><span class="built_in">print</span>(cpy) <span class="comment"># [5, 2, 3, 4]</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="Shallow-and-Deep-Copy"><a href="#Shallow-and-Deep-Copy" class="headerlink" title="Shallow and Deep Copy"></a>Shallow and Deep Copy</h2><ul>
+<li>并非真实copy的例子<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">my_list = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line"><span class="comment"># 直接令cpy = my_list并不是真正的创建了一个新的对象，而只是给原来的对象多了一个label</span></span><br><span class="line">cpy = my_list</span><br><span class="line">cpy[<span class="number">0</span>] = <span class="number">5</span></span><br><span class="line"><span class="built_in">print</span>(my_list) <span class="comment"># [5, 2, 3, 4]</span></span><br><span class="line"><span class="built_in">print</span>(cpy) <span class="comment"># [5, 2, 3, 4]</span></span><br></pre></td></tr></table></figure></li>
+<li>shallow copy: one level copy, only references of nested child objects</li>
+<li>deep copy: full independent copy</li>
+</ul>
+<h3 id="Shallow-Copy"><a href="#Shallow-Copy" class="headerlink" title="Shallow Copy"></a>Shallow Copy</h3><ul>
+<li>一些shallow copy的例子<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> copy</span><br><span class="line">org = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]</span><br><span class="line">cpy = copy.copy(org)</span><br><span class="line">cpy[<span class="number">0</span>] = [-<span class="number">10</span>]</span><br><span class="line"><span class="built_in">print</span>(cpy) <span class="comment"># [-10, 1, 2, 3, 4]</span></span><br><span class="line"><span class="built_in">print</span>(org) <span class="comment"># [0, 1, 2, 3, 4]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 下面三种shallow copy方法等价</span></span><br><span class="line"><span class="comment"># 使用内置的list函数</span></span><br><span class="line">cpy = <span class="built_in">list</span>(org)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用list函数的copy方法</span></span><br><span class="line">cpy = org.copy()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用slicing</span></span><br><span class="line">cpy = org[:]</span><br></pre></td></tr></table></figure></li>
+<li>shallow copy只会copy第一层, 如果list之中的元素还包含list的话, 不会新生成一个list<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> copy</span><br><span class="line">org = [[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>], [<span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]</span><br><span class="line">cpy = copy.copy(org)</span><br><span class="line">cpy[<span class="number">0</span>][<span class="number">0</span>] = -<span class="number">10</span></span><br><span class="line"><span class="built_in">print</span>(cpy) <span class="comment"># [[-10, 2, 3, 4, 5], [5, 6, 7, 8, 9]]</span></span><br><span class="line"><span class="built_in">print</span>(org) <span class="comment"># [[-10, 2, 3, 4, 5], [5, 6, 7, 8, 9]], org里的list中的值被改变了</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="Deep-Copy"><a href="#Deep-Copy" class="headerlink" title="Deep Copy"></a>Deep Copy</h3><ul>
+<li>相较于shallow copy不同的是, 如果list中还包含一个list, 里面的list对象同样也会作copy操作<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> copy</span><br><span class="line">org = [[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>], [<span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]]</span><br><span class="line">cpy = copy.deepcopy(org)</span><br><span class="line">cpy[<span class="number">0</span>][<span class="number">0</span>] = -<span class="number">10</span></span><br><span class="line"><span class="built_in">print</span>(cpy) <span class="comment"># [[-10, 2, 3, 4, 5], [5, 6, 7, 8, 9]]</span></span><br><span class="line"><span class="built_in">print</span>(org) <span class="comment"># [[1, 2, 3, 4, 5], [5, 6, 7, 8, 9]], 这里的org里的list没有被改变</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="面向对象"><a href="#面向对象" class="headerlink" title="面向对象"></a>面向对象</h3><ul>
+<li>面向对象的情况和之前类似, 举例说明如下:<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> copy</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, name, age</span>):</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.age = age</span><br><span class="line"></span><br><span class="line">p1 = Person(<span class="string">&quot;Alex&quot;</span>, <span class="number">27</span>)</span><br><span class="line">p2 = p1</span><br><span class="line">p2.age = <span class="number">28</span></span><br><span class="line"><span class="comment"># 会同时改变，不是真正的copy</span></span><br><span class="line"><span class="built_in">print</span>(p1.age) <span class="comment"># 28</span></span><br><span class="line"><span class="built_in">print</span>(p2.age) <span class="comment"># 28</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用copy方法</span></span><br><span class="line">p2 = copy.copy(p1)</span><br><span class="line">p2.age = <span class="number">28</span></span><br><span class="line"><span class="built_in">print</span>(p1.age) <span class="comment"># 27</span></span><br><span class="line"><span class="built_in">print</span>(p2.age) <span class="comment"># 28</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> copy</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, name, age</span>):</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.age = age</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Company</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, boss, employee</span>):</span></span><br><span class="line">        self.boss = boss</span><br><span class="line">        self.employee = employee</span><br><span class="line"></span><br><span class="line">p1 = Person(<span class="string">&quot;Alex&quot;</span>, <span class="number">55</span>)</span><br><span class="line">p1 = Person(<span class="string">&quot;Joe&quot;</span>, <span class="number">27</span>)</span><br><span class="line"></span><br><span class="line">company = Company(p1, p2)</span><br><span class="line">company_clone = copy.copy(company)</span><br><span class="line">company_clone.boss.age = <span class="number">56</span></span><br><span class="line"><span class="comment"># 因为age在更深层, 不是第一层, 所以这里是shallow copy, 会同时改变值</span></span><br><span class="line"><span class="built_in">print</span>(company_clone.boss.age) <span class="comment"># 56</span></span><br><span class="line"><span class="built_in">print</span>(company.boss.age) <span class="comment"># 56</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用deep copy之后才是真正完整地copy了company这个class</span></span><br><span class="line">company = Company(p1, p2)</span><br><span class="line">company_clone = copy.deepcopy(company)</span><br><span class="line">company_clone.boss.age = <span class="number">56</span></span><br><span class="line"><span class="built_in">print</span>(company_clone.boss.age) <span class="comment"># 56</span></span><br><span class="line"><span class="built_in">print</span>(company.boss.age) <span class="comment"># 55, 不会改变原来那个对象里的值</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/02/03/Advanced_Python_2/" rel="prev" title="Advanced Python Learning (2): Strings and Collections">
+      <i class="fa fa-chevron-left"></i> Advanced Python Learning (2): Strings and Collections
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">1.</span> <span class="nav-text">Reference</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Python%E4%B8%AD%E7%9A%84immutable%E5%92%8Cmutable%E5%AF%B9%E8%B1%A1"><span class="nav-number">2.</span> <span class="nav-text">Python中的immutable和mutable对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Shallow-and-Deep-Copy"><span class="nav-number">3.</span> <span class="nav-text">Shallow and Deep Copy</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Shallow-Copy"><span class="nav-number">3.1.</span> <span class="nav-text">Shallow Copy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deep-Copy"><span class="nav-number">3.2.</span> <span class="nav-text">Deep Copy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1"><span class="nav-number">3.3.</span> <span class="nav-text">面向对象</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">19k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">17 mins.</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
