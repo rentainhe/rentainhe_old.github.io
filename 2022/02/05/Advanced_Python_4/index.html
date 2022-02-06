@@ -28,7 +28,7 @@
 <meta property="og:description" content="Python中的itertools可以用于快速生成一些迭代器, 比如元素排列, 元素组合, 无线迭代器等, 可以帮助快速开发, 这里简要记录一下学习笔记">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-02-05T02:35:42.000Z">
-<meta property="article:modified_time" content="2022-02-05T03:52:28.309Z">
+<meta property="article:modified_time" content="2022-02-06T01:59:06.697Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="Python">
 <meta name="twitter:card" content="summary">
@@ -199,10 +199,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2022-02-05 10:35:42 / Modified: 11:52:28" itemprop="dateCreated datePublished" datetime="2022-02-05T10:35:42+08:00">2022-02-05</time>
+              <time title="Created: 2022-02-05 10:35:42" itemprop="dateCreated datePublished" datetime="2022-02-05T10:35:42+08:00">2022-02-05</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-02-06 09:59:06" itemprop="dateModified" datetime="2022-02-06T09:59:06+08:00">2022-02-06</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -226,14 +232,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>3.8k</span>
+              <span>3.9k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>3 mins.</span>
+              <span>4 mins.</span>
             </span>
 
         </div>
@@ -270,10 +276,10 @@
 <h3 id="product"><a href="#product" class="headerlink" title="product"></a>product</h3><p>用于求多个可迭代对象的笛卡尔积, repeat表示重复生成的次数, <code>product(A, B)</code>等价于<code>((x, y) for x in A for y in B)</code></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> itertools <span class="keyword">import</span> product</span><br><span class="line">a = [<span class="number">1</span>, <span class="number">2</span>]</span><br><span class="line">b = [<span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">prod = product(a, b)</span><br><span class="line"><span class="built_in">print</span>(prod)  <span class="comment"># &lt;itertools.product object at 0x7efebd488630&gt;</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(prod))  <span class="comment"># [(1, 3), (1, 4), (2, 3), (2, 4)]</span></span><br><span class="line"></span><br><span class="line">a = [<span class="number">1</span>, <span class="number">2</span>]</span><br><span class="line">b = [<span class="number">3</span>]</span><br><span class="line">prod = product(a, b, repeat=<span class="number">2</span>)  <span class="comment"># 重复组合两次</span></span><br><span class="line"><span class="comment"># product(a, b, repeat=2) 等价于 product(a, b, a ,b)</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(prod))  <span class="comment"># [(1, 3, 1, 3), (1, 3, 2, 3), (2, 3, 1, 3), (2, 3, 2, 3)]</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="permutations"><a href="#permutations" class="headerlink" title="permutations"></a>permutations</h3><p>生成一个排列</p>
+<h3 id="permutations"><a href="#permutations" class="headerlink" title="permutations"></a>permutations</h3><p>选取一部分元素进行排列</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> itertools <span class="keyword">import</span> permutations</span><br><span class="line">a = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">perm = permutations(a)</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(perm))  <span class="comment"># [(1, 2, 3), (1, 3, 2), (2, 1, 3), (2, 3, 1), (3, 1, 2), (3, 2, 1)]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 只从3个元素中取两个进行排列</span></span><br><span class="line">perm = permutations(a， <span class="number">2</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(perm))  <span class="comment"># [(1, 2), (1, 3), (2, 1), (2, 3), (3, 1), (3, 2)]</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="combinations"><a href="#combinations" class="headerlink" title="combinations"></a>combinations</h3><p>生成一个组合</p>
+<h3 id="combinations"><a href="#combinations" class="headerlink" title="combinations"></a>combinations</h3><p>选取一部分元素进行组合</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> itertools <span class="keyword">import</span> combinations</span><br><span class="line">a = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line"><span class="comment"># 只取4个元素中的2个进行组合</span></span><br><span class="line">comb = combinations(a, <span class="number">2</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(comb))  <span class="comment"># [(1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 可以观察到上面的例子中, 不考虑(1, 1)这种自身的组合, 所以为了考虑到这种情况</span></span><br><span class="line"><span class="comment"># itertools提供了一个新的函数接口</span></span><br><span class="line"><span class="keyword">from</span> itertools <span class="keyword">import</span> combinations_with_replacement</span><br><span class="line">comb_wr = combinations_with_replacement(a, <span class="number">2</span>)</span><br><span class="line"><span class="built_in">print</span>(comb_wr)  <span class="comment"># [(1, 1), (1, 2), (1, 3), (1, 4), (2, 2), (2, 3), (2, 4), (3, 3), (3, 4), (4, 4)]</span></span><br></pre></td></tr></table></figure>
 
 <h3 id="accumulate"><a href="#accumulate" class="headerlink" title="accumulate"></a>accumulate</h3><p>元素之间根据某种计算规则累积, 默认是求和操作</p>
