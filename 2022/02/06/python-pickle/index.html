@@ -20,20 +20,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Pytorch日积月累: 关于tensor.all(), tensor.any(), torch.isfinite()以及torch.isnan()的使用">
+  <meta name="description" content="Python中的Pickle模块主要的用途在于，方便一些复杂的数据类型的保存与加载，如果仅仅保存到txt文件中，只能保存为str类型的数据，这在反序列化的时候是非常不方便的，这里对pickle的功能进行简单的学习">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Pytorch Learning Notes(1): tensor.all(), tensor.any(), torch.isfinite() and torch.isnan()">
-<meta property="og:url" content="http://example.com/2022/02/04/pytorch-tensor-all-and-tensor-any/index.html">
+<meta property="og:title" content="Python Pickle">
+<meta property="og:url" content="http://example.com/2022/02/06/python-pickle/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="Pytorch日积月累: 关于tensor.all(), tensor.any(), torch.isfinite()以及torch.isnan()的使用">
+<meta property="og:description" content="Python中的Pickle模块主要的用途在于，方便一些复杂的数据类型的保存与加载，如果仅仅保存到txt文件中，只能保存为str类型的数据，这在反序列化的时候是非常不方便的，这里对pickle的功能进行简单的学习">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2022-02-04T10:35:52.000Z">
-<meta property="article:modified_time" content="2022-02-04T15:19:00.991Z">
+<meta property="article:published_time" content="2022-02-06T05:45:55.000Z">
+<meta property="article:modified_time" content="2022-02-06T06:09:56.782Z">
 <meta property="article:author" content="Ren Tianhe">
-<meta property="article:tag" content="Pytorch">
+<meta property="article:tag" content="Python">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2022/02/04/pytorch-tensor-all-and-tensor-any/">
+<link rel="canonical" href="http://example.com/2022/02/06/python-pickle/">
 
 
 <script id="page-configurations">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>Pytorch Learning Notes(1): tensor.all(), tensor.any(), torch.isfinite() and torch.isnan() | RenTianhe's Blog</title>
+  <title>Python Pickle | RenTianhe's Blog</title>
   
 
 
@@ -177,7 +177,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/02/04/pytorch-tensor-all-and-tensor-any/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/02/06/python-pickle/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -190,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Pytorch Learning Notes(1): tensor.all(), tensor.any(), torch.isfinite() and torch.isnan()
+          Python Pickle
         </h1>
 
         <div class="post-meta">
@@ -201,7 +201,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2022-02-04 18:35:52 / Modified: 23:19:00" itemprop="dateCreated datePublished" datetime="2022-02-04T18:35:52+08:00">2022-02-04</time>
+              <time title="Created: 2022-02-06 13:45:55 / Modified: 14:09:56" itemprop="dateCreated datePublished" datetime="2022-02-06T13:45:55+08:00">2022-02-06</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -209,7 +209,7 @@
               </span>
               <span class="post-meta-item-text">In</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Pytorch/" itemprop="url" rel="index"><span itemprop="name">Pytorch</span></a>
+                  <a href="/categories/Python-Learning/" itemprop="url" rel="index"><span itemprop="name">Python Learning</span></a>
                 </span>
             </span>
 
@@ -226,14 +226,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.6k</span>
+              <span>2k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>1 mins.</span>
+              <span>2 mins.</span>
             </span>
 
         </div>
@@ -245,47 +245,36 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>Pytorch日积月累: 关于tensor.all(), tensor.any(), torch.isfinite()以及torch.isnan()的使用</p>
+        <p>Python中的Pickle模块主要的用途在于，方便一些复杂的数据类型的保存与加载，如果仅仅保存到txt文件中，只能保存为str类型的数据，这在反序列化的时候是非常不方便的，这里对pickle的功能进行简单的学习</p>
 <span id="more"></span>
 
 <h2 id="Contents"><a href="#Contents" class="headerlink" title="Contents"></a>Contents</h2><ul>
 <li><a href="#contents">Contents</a><ul>
-<li><a href="#tensorany">tensor.any()</a></li>
-<li><a href="#tensorall">tensor.all()</a></li>
-<li><a href="#python%E4%B8%AD%E7%9A%84inf%E5%92%8Cnan">Python中的inf和nan</a></li>
-<li><a href="#torchisfinite">torch.isfinite()</a></li>
-<li><a href="#torchisnan">torch.isnan()</a></li>
+<li><a href="#pickle-api-reference">Pickle API Reference</a></li>
+<li><a href="#pickle-basic-usage">Pickle Basic Usage</a></li>
+<li><a href="#pickle%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E7%BB%86%E8%8A%82">Pickle需要注意的细节</a></li>
 </ul>
 </li>
 <li><a href="#reference">Reference</a></li>
 </ul>
-<h3 id="tensor-any"><a href="#tensor-any" class="headerlink" title="tensor.any()"></a>tensor.any()</h3><p>如果张量中存在一个元素为True, 则返回True, 只有当所有元素都为False的时候才返回False</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">a = torch.tensor([<span class="literal">True</span>, <span class="literal">False</span>, <span class="literal">False</span>])</span><br><span class="line"><span class="built_in">print</span>(a.<span class="built_in">any</span>()) <span class="comment"># tensor(True)</span></span><br><span class="line"></span><br><span class="line">b = torch.tensor([<span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>])</span><br><span class="line"><span class="built_in">print</span>(b.<span class="built_in">any</span>()) <span class="comment"># tensor(False)</span></span><br></pre></td></tr></table></figure>
+<h3 id="Pickle-API-Reference"><a href="#Pickle-API-Reference" class="headerlink" title="Pickle API Reference"></a>Pickle API Reference</h3><ul>
+<li><code>pickle.dump(obj, file)</code>: 将python的数据转换并保存到pickle格式的文件内</li>
+<li><code>pickle.dumps(obj)</code>: 将python数据转换为pickle格式的bytes字串</li>
+<li><code>pickle.load(file)</code>: 从pickle格式的文件中读取数据并转换为python类型</li>
+<li><code>pickle.loads(bytes_object)</code>: 从pickle格式的bytes字串转换为python类型</li>
+</ul>
+<p>可以看到<code>pickle.dump</code>和<code>pickle.load</code>对应, <code>pickle.dumps</code>和<code>pickle.loads</code>对应</p>
+<h3 id="Pickle-Basic-Usage"><a href="#Pickle-Basic-Usage" class="headerlink" title="Pickle Basic Usage"></a>Pickle Basic Usage</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pickle</span><br><span class="line"><span class="keyword">import</span> pickle</span><br><span class="line"><span class="comment"># 定义了一个dict</span></span><br><span class="line">my_dict = &#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;ren&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">28</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 利用pickle.dump方法序列化这个dict并保存到一个.pickle后缀的文件中</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;my_dict.pickle&quot;</span>, <span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    pickle.dump(my_dict, f)  <span class="comment"># pickle保存下来的.pickle文件是不具有任何可读性的编码</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 再利用pickle.load方法载入并赋给一个新的变量</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;my_dict.pickle&quot;</span>, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    my_dict_unpickled = pickle.load(f)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(my_dict_unpickled)  <span class="comment"># &#123;&#x27;name&#x27;: &#x27;ren&#x27;, &#x27;age&#x27;: 28&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="tensor-all"><a href="#tensor-all" class="headerlink" title="tensor.all()"></a>tensor.all()</h3><p>如果张量中所有元素都为True, 才返回True, 否则返回False</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">a = torch.tensor([<span class="literal">True</span>,<span class="literal">True</span>,<span class="literal">False</span>])</span><br><span class="line"><span class="built_in">print</span>(a.<span class="built_in">all</span>()) <span class="comment"># tensor(False)</span></span><br><span class="line"></span><br><span class="line">b = torch.tensor([<span class="literal">True</span>,<span class="literal">True</span>,<span class="literal">True</span>])</span><br><span class="line"><span class="built_in">print</span>(b.<span class="built_in">all</span>()) <span class="comment"># tensor(True)</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pickle</span><br><span class="line">a1 = <span class="string">&quot;apple&quot;</span></span><br><span class="line">b1 = &#123;<span class="number">1</span>: <span class="string">&#x27;One&#x27;</span>, <span class="number">2</span>: <span class="string">&#x27;Two&#x27;</span>&#125;</span><br><span class="line">c1 = [<span class="string">&#x27;test&#x27;</span>, <span class="string">&#x27;name&#x27;</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">f1 = <span class="built_in">open</span>(<span class="string">&quot;temp.pkl&quot;</span>, <span class="string">&quot;wb&quot;</span>)</span><br><span class="line"><span class="comment"># 可以保存到同一个文件中</span></span><br><span class="line">pickle.dump(a1, f1)</span><br><span class="line">pickle.dump(b1, f1)</span><br><span class="line">pickle.dump(c1, f1)</span><br><span class="line">f1.close()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 再按照相同的顺序读出</span></span><br><span class="line">f2 = <span class="built_in">open</span>(<span class="string">&quot;temp.pkl&quot;</span>, <span class="string">&quot;rb&quot;</span>)</span><br><span class="line">a2 = pickle.load(f2)</span><br><span class="line">b2 = pickle.load(f2)</span><br><span class="line">c2 = pickle.load(f2)</span><br><span class="line"><span class="built_in">print</span>(a2)  <span class="comment"># apple</span></span><br><span class="line"><span class="built_in">print</span>(b2)  <span class="comment"># &#123;1: &#x27;One&#x27;, 2: &#x27;Two&#x27;&#125;</span></span><br><span class="line"><span class="built_in">print</span>(c2)  <span class="comment"># [&#x27;test&#x27;, &#x27;name&#x27;, 1, 2, 3]</span></span><br><span class="line">f2.close()</span><br></pre></td></tr></table></figure>
 
-<h3 id="Python中的inf和nan"><a href="#Python中的inf和nan" class="headerlink" title="Python中的inf和nan"></a>Python中的inf和nan</h3><ul>
-<li>python中的inf表示无穷大, 可以用<code>float(&quot;inf&quot;)</code>或者<code>float(&quot;-inf&quot;)</code>或者<code>float(&quot;INF&quot;)</code>表示, 所有与inf有关的操作结果都是inf</li>
-<li>python中的nan表示<code>not a number</code>, 不代表任何一个数, 所有设计到nan的操作结果都是nan</li>
-</ul>
-<h3 id="torch-isfinite"><a href="#torch-isfinite" class="headerlink" title="torch.isfinite()"></a>torch.isfinite()</h3><ul>
-<li>docs: <a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.isfinite.html">https://pytorch.org/docs/stable/generated/torch.isfinite.html</a></li>
-</ul>
-<p>Returns a new tensor with boolean elements representing if each element is finite or not.</p>
-<p>Real values are finite when they are not NaN, negative infinity, or infinity. Complex values are finite when both their real and imaginary parts are finite.</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">torch.isfinite(torch.tensor([<span class="number">1</span>, <span class="built_in">float</span>(<span class="string">&#x27;inf&#x27;</span>), <span class="number">2</span>, <span class="built_in">float</span>(<span class="string">&#x27;-inf&#x27;</span>), <span class="built_in">float</span>(<span class="string">&#x27;nan&#x27;</span>)]))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor([<span class="literal">True</span>,  <span class="literal">False</span>,  <span class="literal">True</span>,  <span class="literal">False</span>,  <span class="literal">False</span>])</span><br></pre></td></tr></table></figure>
-<ul>
-<li><code>inf</code>, <code>-inf</code>, <code>nan</code>都不是finite的数, 所以返回False</li>
-</ul>
-<h3 id="torch-isnan"><a href="#torch-isnan" class="headerlink" title="torch.isnan()"></a>torch.isnan()</h3><ul>
-<li>docs: <a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.isnan.html">https://pytorch.org/docs/stable/generated/torch.isnan.html</a></li>
-</ul>
-<p>Returns a new tensor with boolean elements representing if each element of input is NaN or not. Complex values are considered NaN when either their real and&#x2F;or imaginary part is NaN.</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">torch.isnan(torch.tensor([<span class="number">1</span>, <span class="built_in">float</span>(<span class="string">&#x27;nan&#x27;</span>), <span class="number">2</span>]))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor([<span class="literal">False</span>, <span class="literal">True</span>, <span class="literal">False</span>])</span><br></pre></td></tr></table></figure>
+
+<h3 id="Pickle需要注意的细节"><a href="#Pickle需要注意的细节" class="headerlink" title="Pickle需要注意的细节"></a>Pickle需要注意的细节</h3><p>Pickle也可以读取自己定义的数据类型, 但是在反持久化的时候, 这个数据类型的定义必须存在</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pickle</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, name, age</span>):</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.age = age</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">show</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">print</span>(self.name, self.age)</span><br><span class="line"></span><br><span class="line">person1 = Person(<span class="string">&quot;ren&quot;</span>, <span class="number">22</span>)</span><br><span class="line">person1.show()  <span class="comment"># ren 22</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 可以保存一个自定义的数据类型</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;temp.pkl&quot;</span>, <span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    pickle.dump(person1, f)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果在加载前将自定义数据类型删除的话, 则会加载失败</span></span><br><span class="line"><span class="comment"># del Person</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;temp.pkl&quot;</span>, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    person_unpickled = pickle.load(f)</span><br><span class="line"></span><br><span class="line">person_unpickled.show()  <span class="comment"># ren 22</span></span><br></pre></td></tr></table></figure>
 
 <h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d9caa4ab46e1">认识python中的inf和nan</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.liujiangblog.com/course/python/66">Python Pickle</a></li>
+<li><a target="_blank" rel="noopener" href="https://baijiahao.baidu.com/s?id=1659704040997959589&wfr=spider&for=pc">Python中的Pickle模块</a></li>
 </ul>
 
     </div>
@@ -296,7 +285,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Pytorch/" rel="tag"># Pytorch</a>
+              <a href="/tags/Python/" rel="tag"># Python</a>
           </div>
 
         
@@ -305,13 +294,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/02/04/detectron2-LazyCall/" rel="prev" title="Detectron2 Learning Notes(1): LazyCall">
-      <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(1): LazyCall
+    <a href="/2022/02/05/Advanced_Python_6/" rel="prev" title="Advanced Python Learning (6): Function Arguments">
+      <i class="fa fa-chevron-left"></i> Advanced Python Learning (6): Function Arguments
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2022/02/04/python-decorator/" rel="next" title="Python Decorator">
-      Python Decorator <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -370,7 +356,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#tensor-any"><span class="nav-number">1.1.</span> <span class="nav-text">tensor.any()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tensor-all"><span class="nav-number">1.2.</span> <span class="nav-text">tensor.all()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Python%E4%B8%AD%E7%9A%84inf%E5%92%8Cnan"><span class="nav-number">1.3.</span> <span class="nav-text">Python中的inf和nan</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#torch-isfinite"><span class="nav-number">1.4.</span> <span class="nav-text">torch.isfinite()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#torch-isnan"><span class="nav-number">1.5.</span> <span class="nav-text">torch.isnan()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Pickle-API-Reference"><span class="nav-number">1.1.</span> <span class="nav-text">Pickle API Reference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pickle-Basic-Usage"><span class="nav-number">1.2.</span> <span class="nav-text">Pickle Basic Usage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pickle%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E7%BB%86%E8%8A%82"><span class="nav-number">1.3.</span> <span class="nav-text">Pickle需要注意的细节</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
