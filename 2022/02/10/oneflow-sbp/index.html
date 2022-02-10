@@ -20,20 +20,25 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="本篇文章针对COCO数据集的标注进行了简要介绍">
+  <meta name="description" content="本篇文章主要记录一下OneFlow中关于分布式tensor的基本概念SBP: Split, Broadcast, Partial的知识, 以及local global相关的内容的学习笔记~">
 <meta property="og:type" content="article">
-<meta property="og:title" content="COCO数据集的标注格式">
-<meta property="og:url" content="http://example.com/2022/01/30/coco_data/index.html">
+<meta property="og:title" content="OneFlow Learning (1): SBP Signature, Placement and Local-Global">
+<meta property="og:url" content="http://example.com/2022/02/10/oneflow-sbp/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="本篇文章针对COCO数据集的标注进行了简要介绍">
+<meta property="og:description" content="本篇文章主要记录一下OneFlow中关于分布式tensor的基本概念SBP: Split, Broadcast, Partial的知识, 以及local global相关的内容的学习笔记~">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2022-01-30T06:34:04.000Z">
-<meta property="article:modified_time" content="2022-01-31T02:44:12.558Z">
+<meta property="og:image" content="http://example.com/.com//data_parallel.png">
+<meta property="og:image" content="http://example.com/.com//model_parallel.png">
+<meta property="og:image" content="http://example.com/.com//pipeline_parallel.png">
+<meta property="og:image" content="http://example.com/.com//tensor_sbp.png">
+<meta property="article:published_time" content="2022-02-10T06:21:19.000Z">
+<meta property="article:modified_time" content="2022-02-10T18:32:52.454Z">
 <meta property="article:author" content="Ren Tianhe">
-<meta property="article:tag" content="Python">
+<meta property="article:tag" content="OneFlow">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/.com//data_parallel.png">
 
-<link rel="canonical" href="http://example.com/2022/01/30/coco_data/">
+<link rel="canonical" href="http://example.com/2022/02/10/oneflow-sbp/">
 
 
 <script id="page-configurations">
@@ -46,7 +51,7 @@
   };
 </script>
 
-  <title>COCO数据集的标注格式 | RenTianhe's Blog</title>
+  <title>OneFlow Learning (1): SBP Signature, Placement and Local-Global | RenTianhe's Blog</title>
   
 
 
@@ -177,7 +182,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/30/coco_data/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/02/10/oneflow-sbp/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -190,7 +195,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          COCO数据集的标注格式
+          OneFlow Learning (1): SBP Signature, Placement and Local-Global
         </h1>
 
         <div class="post-meta">
@@ -200,14 +205,14 @@
               </span>
               <span class="post-meta-item-text">Posted on</span>
 
-              <time title="Created: 2022-01-30 14:34:04" itemprop="dateCreated datePublished" datetime="2022-01-30T14:34:04+08:00">2022-01-30</time>
+              <time title="Created: 2022-02-10 14:21:19" itemprop="dateCreated datePublished" datetime="2022-02-10T14:21:19+08:00">2022-02-10</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-01-31 10:44:12" itemprop="dateModified" datetime="2022-01-31T10:44:12+08:00">2022-01-31</time>
+                <time title="Modified: 2022-02-11 02:32:52" itemprop="dateModified" datetime="2022-02-11T02:32:52+08:00">2022-02-11</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -215,7 +220,7 @@
               </span>
               <span class="post-meta-item-text">In</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Object-Detection/" itemprop="url" rel="index"><span itemprop="name">Object Detection</span></a>
+                  <a href="/categories/OneFlow-Learning/" itemprop="url" rel="index"><span itemprop="name">OneFlow Learning</span></a>
                 </span>
             </span>
 
@@ -232,14 +237,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.5k</span>
+              <span>2.2k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>1 mins.</span>
+              <span>2 mins.</span>
             </span>
 
         </div>
@@ -251,28 +256,65 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>本篇文章针对COCO数据集的标注进行了简要介绍</p>
+        <p>本篇文章主要记录一下OneFlow中关于分布式tensor的基本概念SBP: Split, Broadcast, Partial的知识, 以及local global相关的内容的学习笔记~</p>
 <span id="more"></span>
 
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/70878433">COCO数据集的简单介绍</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/84214563">COCO数据集以及COCOAPI</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/110676412">MSCOCO物体检测评测系统的分析</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/29393415"><strong>COCO数据集的标注形式</strong></a></li>
-<li><a target="_blank" rel="noopener" href="https://tangh.github.io/articles/coco-and-cityscapes-datasets/"><strong>*COCO 和 CityScapes 数据集的标注格式和使用</strong></a></li>
+<h2 id="Contents"><a href="#Contents" class="headerlink" title="Contents"></a>Contents</h2><ul>
+<li><a href="#contents">Contents</a><ul>
+<li><a href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E8%A1%8C%E7%AD%96%E7%95%A5">常见的分布式并行策略</a></li>
+<li><a href="#oneflow%E4%B8%AD%E7%9A%84%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7%E8%A7%86%E8%A7%92global-view">OneFlow中的集群一致性视角(global view)</a></li>
+<li><a href="#placement">Placement</a></li>
+<li><a href="#sbp">SBP</a></li>
+<li><a href="#sbp-signature">SBP Signature</a></li>
 </ul>
-<h3 id="最顶层形式"><a href="#最顶层形式" class="headerlink" title="最顶层形式"></a>最顶层形式</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;info&quot;: info,</span><br><span class="line">    &quot;licenses&quot;: [license],</span><br><span class="line">    &quot;images&quot;: [image],</span><br><span class="line">    &quot;annotations&quot;: [annotation],</span><br><span class="line">    &quot;categories&quot;: [category]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h3 id="常见的分布式并行策略"><a href="#常见的分布式并行策略" class="headerlink" title="常见的分布式并行策略"></a>常见的分布式并行策略</h3><ul>
+<li><strong>数据并行</strong>: 所谓的数据并行意思是将数据按照参与训练的GPU数量进行切分，并且在每一个GPU上都有一个完整的模型, 我们这里先不去纠结梯度相关的概念, 只需要看这个tensor的执行</li>
+</ul>
+<p><img src="/.com//data_parallel.png" alt="data_parallel"><br>可以看到原本输入的数据<code>(4, 5)</code>被平分到不同的卡上, 每张卡的数据大小时<code>(2, 5)</code>, 在经过计算后, concat到一起变成<code>(4, 5)</code>, 才是完整的输出</p>
 <ul>
-<li><code>images</code>字段列表长度等于数据集<code>(train2014, val2014,...)</code>中的图片数量</li>
-<li><code>annotations</code>字段列表长度等于数据集中的bbox数量</li>
-<li><code>categories</code>字段列表长度等价于类别的数量，coco2017中为80类<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>ann_train_file=<span class="string">&#x27;annotations/instances_train2017.json&#x27;</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>coco_train = COCO(ann_train_file)</span><br><span class="line">loading annotations into memory...</span><br><span class="line">Done (t=<span class="number">19.30</span>s)</span><br><span class="line">creating index...</span><br><span class="line">index created!</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">len</span>(coco_train.dataset[<span class="string">&#x27;categories&#x27;</span>])</span><br><span class="line"><span class="number">80</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">len</span>(coco_train.dataset[<span class="string">&#x27;images&#x27;</span>])</span><br><span class="line"><span class="number">118287</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">len</span>(coco_train.dataset[<span class="string">&#x27;annotations&#x27;</span>])</span><br><span class="line"><span class="number">860001</span></span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
-<h3 id="子层中的形式"><a href="#子层中的形式" class="headerlink" title="子层中的形式"></a>子层中的形式</h3><h4 id="images中每个数据的形式"><a href="#images中每个数据的形式" class="headerlink" title="images中每个数据的形式"></a>images中每个数据的形式</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> data[<span class="string">&quot;images&quot;</span>][<span class="number">0</span>]:</span><br><span class="line">    <span class="built_in">print</span>(k)</span><br><span class="line">-----------------------------</span><br><span class="line">license</span><br><span class="line">file_name</span><br><span class="line">coco_url</span><br><span class="line">height</span><br><span class="line">width</span><br><span class="line">date_captured</span><br><span class="line">flickr_url</span><br><span class="line"><span class="built_in">id</span></span><br></pre></td></tr></table></figure></li>
+<li><strong>模型并行</strong>: 模型并行的意思是, 将模型拆分到不同的卡上, 但是每张卡上拿到的数据都是一样的</li>
 </ul>
-<h4 id="annotations中的每个数据形式，这是最重要的"><a href="#annotations中的每个数据形式，这是最重要的" class="headerlink" title="annotations中的每个数据形式，这是最重要的"></a>annotations中的每个数据形式，这是最重要的</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> data[<span class="string">&quot;annotations &quot;</span>][<span class="number">0</span>]:</span><br><span class="line">    <span class="built_in">print</span>(k)</span><br><span class="line">------------------------------------</span><br><span class="line">segmentation</span><br><span class="line">area</span><br><span class="line">iscrowd</span><br><span class="line">image_id</span><br><span class="line">bbox</span><br><span class="line">category_id</span><br><span class="line"><span class="built_in">id</span></span><br></pre></td></tr></table></figure>
-<p>各个数据的标注格式</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">annotation&#123;</span><br><span class="line">    &quot;id&quot;: int,    </span><br><span class="line">    &quot;image_id&quot;: int,</span><br><span class="line">    &quot;category_id&quot;: int,</span><br><span class="line">    &quot;segmentation&quot;: RLE or [polygon],</span><br><span class="line">    &quot;area&quot;: float,</span><br><span class="line">    &quot;bbox&quot;: [x,y,width,height],</span><br><span class="line">    &quot;iscrowd&quot;: 0 or 1,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/.com//model_parallel.png" alt="model_parallel"><br>可以看到我们的模型权重矩阵从<code>(5, 8)</code>被拆分为了两个<code>(5, 4)</code>的权重分别放置在不同的GPU上, 在经过计算后concat到一起才是完整的输出</p>
+<ul>
+<li><strong>流水并行</strong>: 流水并行的意思是, 当网络特别大的时候, 无法在一个设备上存放, 这时会将网络切分为多个阶段, 并分发到不同的设备上, 各个设备之间按照”接力”的方式完成训练</li>
+</ul>
+<p><img src="/.com//pipeline_parallel.png" alt="pipeline_parallel"><br>注意这里将4层的网络切分到了两个GPU上, 其中<code>GPU0</code>进行<code>T1</code>和<code>T2</code>的运算, <code>GPU1</code>上进行<code>T3</code>和<code>T4</code>的计算, <code>GPU0</code>上完成计算后的输出, 作为<code>GPU1</code>的输入</p>
+<h3 id="OneFlow中的集群一致性视角-global-view"><a href="#OneFlow中的集群一致性视角-global-view" class="headerlink" title="OneFlow中的集群一致性视角(global view)"></a>OneFlow中的集群一致性视角(global view)</h3><p>OneFlow中提出了集群一致性视角, 原先叫consistent view, 后续可能改名为global view, 意思就是将所有的设备抽象成一个巨大的集群, 由一致性视角在oneflow下引申出了三个概念: <strong>Placement</strong>, <strong>SBP</strong>, <strong>SBP Signature</strong>.</p>
+<h3 id="Placement"><a href="#Placement" class="headerlink" title="Placement"></a>Placement</h3><p>在OneFlow的一致性视角下的Tensor具有<code>placement</code>属性, placement属性表示将这个Tensor存在在哪个具体的物理设备上. 比如我们集群上有4台主机, 每台主机上有8张显卡, 那么4台主机分别对应了<code>ID: 0, 1, 2, 3</code>， 每台主机上的显卡分别对应<code>0, 1, 2, 3, 4, 5, 6, 7</code>. 如果我们想把这个tensor放置在0号机器的前4张卡上, 此时的placement配置为<code>placement(&quot;cuda&quot;: &#123;0: [0, 1, 2, 3]&#125;)</code></p>
+<h3 id="SBP"><a href="#SBP" class="headerlink" title="SBP"></a>SBP</h3><p>SBP分别对应了数据与集群中真实物理设备对应关系</p>
+<ul>
+<li><code>S: Split</code>表示数据是切分到不同的设备上, 比如有两张GPU和一个<code>(4, 5)</code>大小的张量, 将这个张量切分到两张不同的卡上, 每张卡上分别有一份<code>(2, 5)</code>大小的Tensor, 则这个张量的状态为Split</li>
+<li><code>B: Broadcast</code>表示这个张量会广播到所有GPU上, 每个GPU上都有一份同样的数据</li>
+<li><code>P: Partial</code>表示一个张量的部分值，这个部分的意思是, 比如有两张卡分别对应GPU0和GPU1, 在这两张卡上都有<code>(4, 5)</code>大小的张量，但这两个Tensor都不是完整的，求和之后才是一个完整的<code>(4, 5)</code>大小的张量</li>
+</ul>
+<p>以下是SBP概念的相关图示<br><img src="/.com//tensor_sbp.png" alt="tensor_sbp"></p>
+<h3 id="SBP-Signature"><a href="#SBP-Signature" class="headerlink" title="SBP Signature"></a>SBP Signature</h3><p>SBP Signature表示不同状态张量的一个<code>合法的计算组合</code>, 以下我们举例说明一下, 首先我们假设在OneFlow的一致性视角下, 有两个矩阵, 矩阵A大小为<code>(m, k)</code>, 矩阵B大小为<code>(k, n)</code>, 这两者进行矩阵乘法后, 我们可以得到一个<code>(m, n)</code>大小的输出</p>
+<p>假设我们有两台设备, 分别对应<code>GPU0</code>和<code>GPU1</code></p>
+<ul>
+<li>将矩阵A沿着0维切分</li>
+</ul>
+<p>GPU0和GPU1上分别有一份大小为<code>(m/2, k)</code>的矩阵, 然后在两个设备上分别与<code>B: (k, n)</code>计算矩阵乘法, 在计算后两个GPU上的输出分别为<code>(m/2, n)</code>的矩阵, 都只是理论输出<code>(m, n)</code>大小矩阵的一部分, 需要沿着0维度进行一次concat操作, 才能得到完整的<code>(m, n)</code>输出, 如果用SBP来描述这个操作, 即 A矩阵的状态是<code>split(0)</code>, B矩阵的状态是<code>broadcast</code>, 二者在计算后得到的输出状态为<code>split(0)</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">split(<span class="number">0</span>) x broadcast -&gt; split(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
 
-<h4 id="categories中的每个数据格式"><a href="#categories中的每个数据格式" class="headerlink" title="categories中的每个数据格式"></a>categories中的每个数据格式</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> data[<span class="string">&quot;categories&quot;</span>][<span class="number">0</span>]:</span><br><span class="line">    <span class="built_in">print</span>(k)</span><br><span class="line">-----------------------------------</span><br><span class="line">supercategory</span><br><span class="line"><span class="built_in">id</span></span><br><span class="line">name</span><br></pre></td></tr></table></figure>
+<ul>
+<li>将矩阵B沿着1维切分</li>
+</ul>
+<p>GPU0和GPU1上分别有一份大小为<code>(k, 2/n)</code>的矩阵, 然后两个设备上的矩阵A <code>(m, k)</code>, 分别于不同卡上的<code>(k, n/2)</code>进行计算得到<code>(m, 2/n)</code>, 需要在1维上进行concat操作, 才能得到完整的<code>(m, n)</code>输出, 如果用SBP来描述这个操作, 即 A矩阵的状态是<code>broadcast</code>, B矩阵的状态是<code>split(1)</code>, 二者在计算后得到的输出状态为<code>split(1)</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">broadcast x split(<span class="number">1</span>) -&gt; split(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>将矩阵A沿着1维切分, 矩阵B沿着0维切分</li>
+</ul>
+<p>此时的情况会复杂一些, A沿着1维度被均匀切分到两张卡上, 大小均为<code>(m, k/2)</code>, B沿着0维度被均匀切分到两张卡上, 大小均为<code>(k/2, n)</code>, 此时在两张卡上进行AB矩阵乘, 输出均为<code>(m, k/2) * (k/2, n) = (m, n)</code>, 但是此时只有将这两张卡上的输出求和, 才是最终理论上AB矩阵乘的结果, 这时的情况为<code>Partial Sum</code>, 如果用SBP来描述这个操作, 即 A矩阵的状态是<code>split(1)</code>, B矩阵的状态是<code>split(0)</code>, 二者在计算后得到的输出状态为<code>partial</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">split(<span class="number">1</span>) x split(<span class="number">0</span>) -&gt; partial</span><br></pre></td></tr></table></figure>
+
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.oneflow.org/master/parallelism/01_introduction.html">OneFlow官网介绍</a></li>
+</ul>
+
     </div>
 
     
@@ -281,7 +323,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/OneFlow/" rel="tag"># OneFlow</a>
           </div>
 
         
@@ -290,13 +332,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/01/30/python_typing/" rel="prev" title="Python中使用typing进行类型检查">
-      <i class="fa fa-chevron-left"></i> Python中使用typing进行类型检查
+    <a href="/2022/02/08/generator-and-yield/" rel="prev" title="Advanced Python Learning (8): Yield and Generator">
+      <i class="fa fa-chevron-left"></i> Advanced Python Learning (8): Yield and Generator
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2022/01/30/AcWing_CPP_Basic/" rel="next" title="AcWing C++基础语法(一) 变量、输入输出、表达式和顺序语句">
-      AcWing C++基础语法(一) 变量、输入输出、表达式和顺序语句 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -355,7 +394,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">1.</span> <span class="nav-text">Reference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E9%A1%B6%E5%B1%82%E5%BD%A2%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">最顶层形式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%90%E5%B1%82%E4%B8%AD%E7%9A%84%E5%BD%A2%E5%BC%8F"><span class="nav-number">3.</span> <span class="nav-text">子层中的形式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#images%E4%B8%AD%E6%AF%8F%E4%B8%AA%E6%95%B0%E6%8D%AE%E7%9A%84%E5%BD%A2%E5%BC%8F"><span class="nav-number">3.1.</span> <span class="nav-text">images中每个数据的形式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#annotations%E4%B8%AD%E7%9A%84%E6%AF%8F%E4%B8%AA%E6%95%B0%E6%8D%AE%E5%BD%A2%E5%BC%8F%EF%BC%8C%E8%BF%99%E6%98%AF%E6%9C%80%E9%87%8D%E8%A6%81%E7%9A%84"><span class="nav-number">3.2.</span> <span class="nav-text">annotations中的每个数据形式，这是最重要的</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#categories%E4%B8%AD%E7%9A%84%E6%AF%8F%E4%B8%AA%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F"><span class="nav-number">3.3.</span> <span class="nav-text">categories中的每个数据格式</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E8%A1%8C%E7%AD%96%E7%95%A5"><span class="nav-number">1.1.</span> <span class="nav-text">常见的分布式并行策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OneFlow%E4%B8%AD%E7%9A%84%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7%E8%A7%86%E8%A7%92-global-view"><span class="nav-number">1.2.</span> <span class="nav-text">OneFlow中的集群一致性视角(global view)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Placement"><span class="nav-number">1.3.</span> <span class="nav-text">Placement</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SBP"><span class="nav-number">1.4.</span> <span class="nav-text">SBP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SBP-Signature"><span class="nav-number">1.5.</span> <span class="nav-text">SBP Signature</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
