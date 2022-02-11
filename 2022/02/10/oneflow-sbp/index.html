@@ -32,7 +32,7 @@
 <meta property="og:image" content="http://example.com/2022/02/10/oneflow-sbp/pipeline_parallel.png">
 <meta property="og:image" content="http://example.com/2022/02/10/oneflow-sbp/tensor_sbp.png">
 <meta property="article:published_time" content="2022-02-10T06:21:19.000Z">
-<meta property="article:modified_time" content="2022-02-10T19:08:26.899Z">
+<meta property="article:modified_time" content="2022-02-11T17:55:08.373Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="OneFlow">
 <meta name="twitter:card" content="summary">
@@ -212,7 +212,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-02-11 03:08:26" itemprop="dateModified" datetime="2022-02-11T03:08:26+08:00">2022-02-11</time>
+                <time title="Modified: 2022-02-12 01:55:08" itemprop="dateModified" datetime="2022-02-12T01:55:08+08:00">2022-02-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -258,9 +258,10 @@
       
         <p>本篇文章主要记录一下OneFlow中关于分布式tensor的基本概念SBP: Split, Broadcast, Partial的知识, 以及local global相关的内容的学习笔记~</p>
 <span id="more"></span>
-
-<h2 id="Contents"><a href="#Contents" class="headerlink" title="Contents"></a>Contents</h2><ul>
-<li><a href="#contents">Contents</a><ul>
+<h2 id="Contents">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
 <li><a href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E8%A1%8C%E7%AD%96%E7%95%A5">常见的分布式并行策略</a></li>
 <li><a href="#oneflow%E4%B8%AD%E7%9A%84%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7%E8%A7%86%E8%A7%92global-view">OneFlow中的集群一致性视角(global view)</a></li>
 <li><a href="#placement">Placement</a></li>
@@ -270,7 +271,8 @@
 </li>
 <li><a href="#reference">Reference</a></li>
 </ul>
-<h3 id="常见的分布式并行策略"><a href="#常见的分布式并行策略" class="headerlink" title="常见的分布式并行策略"></a>常见的分布式并行策略</h3><ul>
+<h3 id="常见的分布式并行策略">常见的分布式并行策略</h3>
+<ul>
 <li><strong>数据并行</strong>: 所谓的数据并行意思是将数据按照参与训练的GPU数量进行切分，并且在每一个GPU上都有一个完整的模型, 我们这里先不去纠结梯度相关的概念, 只需要看这个tensor的执行</li>
 </ul>
 <p><img src="https://github.com/rentainhe/rentainhe.github.io/raw/main/2022/02/10/oneflow-sbp/data_parallel.png" alt="data_parallel"></p>
@@ -281,13 +283,16 @@
 <img src="/2022/02/10/oneflow-sbp/model_parallel.png" class title="model_parallel">
 <p>可以看到我们的模型权重矩阵从<code>(5, 8)</code>被拆分为了两个<code>(5, 4)</code>的权重分别放置在不同的GPU上, 在经过计算后concat到一起才是完整的输出</p>
 <ul>
-<li><strong>流水并行</strong>: 流水并行的意思是, 当网络特别大的时候, 无法在一个设备上存放, 这时会将网络切分为多个阶段, 并分发到不同的设备上, 各个设备之间按照”接力”的方式完成训练</li>
+<li><strong>流水并行</strong>: 流水并行的意思是, 当网络特别大的时候, 无法在一个设备上存放, 这时会将网络切分为多个阶段, 并分发到不同的设备上, 各个设备之间按照&quot;接力&quot;的方式完成训练</li>
 </ul>
 <img src="/2022/02/10/oneflow-sbp/pipeline_parallel.png" class title="pipeline_parallel">
 <p>注意这里将4层的网络切分到了两个GPU上, 其中<code>GPU0</code>进行<code>T1</code>和<code>T2</code>的运算, <code>GPU1</code>上进行<code>T3</code>和<code>T4</code>的计算, <code>GPU0</code>上完成计算后的输出, 作为<code>GPU1</code>的输入</p>
-<h3 id="OneFlow中的集群一致性视角-global-view"><a href="#OneFlow中的集群一致性视角-global-view" class="headerlink" title="OneFlow中的集群一致性视角(global view)"></a>OneFlow中的集群一致性视角(global view)</h3><p>OneFlow中提出了集群一致性视角, 原先叫consistent view, 后续可能改名为global view, 意思就是将所有的设备抽象成一个巨大的集群, 由一致性视角在oneflow下引申出了三个概念: <strong>Placement</strong>, <strong>SBP</strong>, <strong>SBP Signature</strong>.</p>
-<h3 id="Placement"><a href="#Placement" class="headerlink" title="Placement"></a>Placement</h3><p>在OneFlow的一致性视角下的Tensor具有<code>placement</code>属性, placement属性表示将这个Tensor存在在哪个具体的物理设备上. 比如我们集群上有4台主机, 每台主机上有8张显卡, 那么4台主机分别对应了<code>ID: 0, 1, 2, 3</code>， 每台主机上的显卡分别对应<code>0, 1, 2, 3, 4, 5, 6, 7</code>. 如果我们想把这个tensor放置在0号机器的前4张卡上, 此时的placement配置为<code>placement(&quot;cuda&quot;: &#123;0: [0, 1, 2, 3]&#125;)</code></p>
-<h3 id="SBP"><a href="#SBP" class="headerlink" title="SBP"></a>SBP</h3><p>SBP分别对应了数据与集群中真实物理设备对应关系</p>
+<h3 id="OneFlow中的集群一致性视角-global-view">OneFlow中的集群一致性视角(global view)</h3>
+<p>OneFlow中提出了集群一致性视角, 原先叫consistent view, 后续可能改名为global view, 意思就是将所有的设备抽象成一个巨大的集群, 由一致性视角在oneflow下引申出了三个概念: <strong>Placement</strong>, <strong>SBP</strong>, <strong>SBP Signature</strong>.</p>
+<h3 id="Placement">Placement</h3>
+<p>在OneFlow的一致性视角下的Tensor具有<code>placement</code>属性, placement属性表示将这个Tensor存在在哪个具体的物理设备上. 比如我们集群上有4台主机, 每台主机上有8张显卡, 那么4台主机分别对应了<code>ID: 0, 1, 2, 3</code>， 每台主机上的显卡分别对应<code>0, 1, 2, 3, 4, 5, 6, 7</code>. 如果我们想把这个tensor放置在0号机器的前4张卡上, 此时的placement配置为<code>placement(&quot;cuda&quot;: &#123;0: [0, 1, 2, 3]&#125;)</code></p>
+<h3 id="SBP">SBP</h3>
+<p>SBP分别对应了数据与集群中真实物理设备对应关系</p>
 <ul>
 <li><code>S: Split</code>表示数据是切分到不同的设备上, 比如有两张GPU和一个<code>(4, 5)</code>大小的张量, 将这个张量切分到两张不同的卡上, 每张卡上分别有一份<code>(2, 5)</code>大小的Tensor, 则这个张量的状态为Split</li>
 <li><code>B: Broadcast</code>表示这个张量会广播到所有GPU上, 每个GPU上都有一份同样的数据</li>
@@ -295,28 +300,26 @@
 </ul>
 <p>以下是SBP概念的相关图示</p>
 <img src="/2022/02/10/oneflow-sbp/tensor_sbp.png" class title="tensor_sbp">
-
-<h3 id="SBP-Signature"><a href="#SBP-Signature" class="headerlink" title="SBP Signature"></a>SBP Signature</h3><p>SBP Signature表示不同状态张量的一个<code>合法的计算组合</code>, 以下我们举例说明一下, 首先我们假设在OneFlow的一致性视角下, 有两个矩阵, 矩阵A大小为<code>(m, k)</code>, 矩阵B大小为<code>(k, n)</code>, 这两者进行矩阵乘法后, 我们可以得到一个<code>(m, n)</code>大小的输出</p>
+<h3 id="SBP-Signature">SBP Signature</h3>
+<p>SBP Signature表示不同状态张量的一个<code>合法的计算组合</code>, 以下我们举例说明一下, 首先我们假设在OneFlow的一致性视角下, 有两个矩阵, 矩阵A大小为<code>(m, k)</code>, 矩阵B大小为<code>(k, n)</code>, 这两者进行矩阵乘法后, 我们可以得到一个<code>(m, n)</code>大小的输出</p>
 <p>假设我们有两台设备, 分别对应<code>GPU0</code>和<code>GPU1</code></p>
 <ul>
 <li>将矩阵A沿着0维切分</li>
 </ul>
 <p>GPU0和GPU1上分别有一份大小为<code>(m/2, k)</code>的矩阵, 然后在两个设备上分别与<code>B: (k, n)</code>计算矩阵乘法, 在计算后两个GPU上的输出分别为<code>(m/2, n)</code>的矩阵, 都只是理论输出<code>(m, n)</code>大小矩阵的一部分, 需要沿着0维度进行一次concat操作, 才能得到完整的<code>(m, n)</code>输出, 如果用SBP来描述这个操作, 即 A矩阵的状态是<code>split(0)</code>, B矩阵的状态是<code>broadcast</code>, 二者在计算后得到的输出状态为<code>split(0)</code></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">split(<span class="number">0</span>) x broadcast -&gt; split(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>将矩阵B沿着1维切分</li>
 </ul>
 <p>GPU0和GPU1上分别有一份大小为<code>(k, 2/n)</code>的矩阵, 然后两个设备上的矩阵A <code>(m, k)</code>, 分别于不同卡上的<code>(k, n/2)</code>进行计算得到<code>(m, 2/n)</code>, 需要在1维上进行concat操作, 才能得到完整的<code>(m, n)</code>输出, 如果用SBP来描述这个操作, 即 A矩阵的状态是<code>broadcast</code>, B矩阵的状态是<code>split(1)</code>, 二者在计算后得到的输出状态为<code>split(1)</code></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">broadcast x split(<span class="number">1</span>) -&gt; split(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
-
 <ul>
 <li>将矩阵A沿着1维切分, 矩阵B沿着0维切分</li>
 </ul>
 <p>此时的情况会复杂一些, A沿着1维度被均匀切分到两张卡上, 大小均为<code>(m, k/2)</code>, B沿着0维度被均匀切分到两张卡上, 大小均为<code>(k/2, n)</code>, 此时在两张卡上进行AB矩阵乘, 输出均为<code>(m, k/2) * (k/2, n) = (m, n)</code>, 但是此时只有将这两张卡上的输出求和, 才是最终理论上AB矩阵乘的结果, 这时的情况为<code>Partial Sum</code>, 如果用SBP来描述这个操作, 即 A矩阵的状态是<code>split(1)</code>, B矩阵的状态是<code>split(0)</code>, 二者在计算后得到的输出状态为<code>partial</code></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">split(<span class="number">1</span>) x split(<span class="number">0</span>) -&gt; partial</span><br></pre></td></tr></table></figure>
-
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<h2 id="Reference">Reference</h2>
+<ul>
 <li><a target="_blank" rel="noopener" href="https://docs.oneflow.org/master/parallelism/01_introduction.html">OneFlow官网介绍</a></li>
 </ul>
 

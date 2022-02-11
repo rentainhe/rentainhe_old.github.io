@@ -247,24 +247,38 @@
       
         <p>记录一下Python中如果报错找不到Module时的解决方案</p>
 <span id="more"></span>
-
-<h2 id="python的工作路径"><a href="#python的工作路径" class="headerlink" title="python的工作路径"></a>python的工作路径</h2><ul>
-<li>获取python进程的工作路径, 进程的工作路径取决于在哪里执行这个文件, 如果是<code>python test.py</code>, 那么工作路径就是<code>./</code>, 如果是<code>python test/test.py</code>, 那么工作路径就是<code>/test</code><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="built_in">print</span>(os.getcwd()) <span class="comment"># current work dir</span></span><br></pre></td></tr></table></figure></li>
-<li>修改工作路径<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line">os.chdir(<span class="string">&quot;/home&quot;</span>)</span><br></pre></td></tr></table></figure></li>
-<li>工作路径主要影响程序里使用的相对路径<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 例如在保存文件时</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="built_in">open</span>(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;w&quot;</span>).close() <span class="comment"># 创建一个test.txt文件</span></span><br><span class="line">os.chdir(<span class="string">&quot;/home&quot;</span>)</span><br><span class="line"><span class="built_in">open</span>(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;w&quot;</span>).close() <span class="comment"># 在/home下创建一个test.txt</span></span><br></pre></td></tr></table></figure></li>
+<h2 id="python的工作路径">python的工作路径</h2>
+<ul>
+<li>获取python进程的工作路径, 进程的工作路径取决于在哪里执行这个文件, 如果是<code>python test.py</code>, 那么工作路径就是<code>./</code>, 如果是<code>python test/test.py</code>, 那么工作路径就是<code>/test</code></li>
 </ul>
-<h2 id="python报错找不到Module的解决方案"><a href="#python报错找不到Module的解决方案" class="headerlink" title="python报错找不到Module的解决方案"></a>python报错找不到Module的解决方案</h2><h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>假设我们的目录结构为</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="built_in">print</span>(os.getcwd()) <span class="comment"># current work dir</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>修改工作路径</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line">os.chdir(<span class="string">&quot;/home&quot;</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>工作路径主要影响程序里使用的相对路径</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 例如在保存文件时</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="built_in">open</span>(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;w&quot;</span>).close() <span class="comment"># 创建一个test.txt文件</span></span><br><span class="line">os.chdir(<span class="string">&quot;/home&quot;</span>)</span><br><span class="line"><span class="built_in">open</span>(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;w&quot;</span>).close() <span class="comment"># 在/home下创建一个test.txt</span></span><br></pre></td></tr></table></figure>
+<h2 id="python报错找不到Module的解决方案">python报错找不到Module的解决方案</h2>
+<h4 id="问题描述">问题描述</h4>
+<p>假设我们的目录结构为</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">|--vision</span><br><span class="line">    |--flowvision</span><br><span class="line">        |--models</span><br><span class="line">            |--convnext.py</span><br><span class="line">|--project</span><br><span class="line">    |--benchmark</span><br><span class="line">        |--classification</span><br><span class="line">            |--debug.py</span><br></pre></td></tr></table></figure>
 <p>假设在<code>debug.py</code>中我们使用了这样的一段代码, 并且我们在<code>project/benchmark/classification/</code>下执行<code>python debug.py</code></p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> flowvision</span><br><span class="line">model = flowvision.models.convnext_tiny_224()</span><br><span class="line"><span class="built_in">print</span>(model)</span><br></pre></td></tr></table></figure>
-<p>报错<code>ModuleNotFoundError: No module named &#39;flowvision&#39;</code></p>
-<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><ul>
-<li>首先使用<code>sys.path</code>查看当前执行的代码里，可以找到的module有哪些<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="built_in">print</span>(sys.path)</span><br></pre></td></tr></table></figure>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[&#x27;/home/rentianhe/code/OneFlow-Models/vision/projects/benchmark/classification&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python37.zip&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7/lib-dynload&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7/site-packages&#x27;, &#x27;/home/rentianhe/code/OneFlow-Models/libai&#x27;]</span><br></pre></td></tr></table></figure>
-我们得到了当前执行的代码里可用的module，可以看到，第一个是<code>&#39;/home/rentianhe/code/OneFlow-Models/vision/projects/benchmark/classification&#39;</code>，表示我们当前执行的路径下，没有vision的路径，所以就无法找到flowvision这个module</li>
-<li>手动将vision这个module添加到<code>sys.path</code>中<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">sys.path.append(<span class="string">&quot;/home/rentianhe/code/OneFlow-Models/vision/&quot;</span>)</span><br><span class="line"><span class="keyword">import</span> flowvision</span><br><span class="line">model = flowvision.models.convnext_tiny_224()</span><br></pre></td></tr></table></figure>
-再次执行，发现成功了，这时候我们已经把vision这个module添加到了sys.path中，所以可以找到vision下的flowvision模块</li>
+<p>报错<code>ModuleNotFoundError: No module named 'flowvision'</code></p>
+<h4 id="解决方案">解决方案</h4>
+<ul>
+<li>首先使用<code>sys.path</code>查看当前执行的代码里，可以找到的module有哪些</li>
 </ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="built_in">print</span>(sys.path)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[&#x27;/home/rentianhe/code/OneFlow-Models/vision/projects/benchmark/classification&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python37.zip&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7/lib-dynload&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7/site-packages&#x27;, &#x27;/home/rentianhe/code/OneFlow-Models/libai&#x27;]</span><br></pre></td></tr></table></figure>
+<p>我们得到了当前执行的代码里可用的module，可以看到，第一个是<code>'/home/rentianhe/code/OneFlow-Models/vision/projects/benchmark/classification'</code>，表示我们当前执行的路径下，没有vision的路径，所以就无法找到flowvision这个module</p>
+<ul>
+<li>手动将vision这个module添加到<code>sys.path</code>中</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">sys.path.append(<span class="string">&quot;/home/rentianhe/code/OneFlow-Models/vision/&quot;</span>)</span><br><span class="line"><span class="keyword">import</span> flowvision</span><br><span class="line">model = flowvision.models.convnext_tiny_224()</span><br></pre></td></tr></table></figure>
+<p>再次执行，发现成功了，这时候我们已经把vision这个module添加到了sys.path中，所以可以找到vision下的flowvision模块</p>
 
     </div>
 

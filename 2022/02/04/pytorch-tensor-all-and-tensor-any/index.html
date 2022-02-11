@@ -247,9 +247,10 @@
       
         <p>Pytorch日积月累: 关于tensor.all(), tensor.any(), torch.isfinite()以及torch.isnan()的使用</p>
 <span id="more"></span>
-
-<h2 id="Contents"><a href="#Contents" class="headerlink" title="Contents"></a>Contents</h2><ul>
-<li><a href="#contents">Contents</a><ul>
+<h2 id="Contents-9">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
 <li><a href="#tensorany">tensor.any()</a></li>
 <li><a href="#tensorall">tensor.all()</a></li>
 <li><a href="#python%E4%B8%AD%E7%9A%84inf%E5%92%8Cnan">Python中的inf和nan</a></li>
@@ -259,17 +260,19 @@
 </li>
 <li><a href="#reference">Reference</a></li>
 </ul>
-<h3 id="tensor-any"><a href="#tensor-any" class="headerlink" title="tensor.any()"></a>tensor.any()</h3><p>如果张量中存在一个元素为True, 则返回True, 只有当所有元素都为False的时候才返回False</p>
+<h3 id="tensor-any">tensor.any()</h3>
+<p>如果张量中存在一个元素为True, 则返回True, 只有当所有元素都为False的时候才返回False</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">a = torch.tensor([<span class="literal">True</span>, <span class="literal">False</span>, <span class="literal">False</span>])</span><br><span class="line"><span class="built_in">print</span>(a.<span class="built_in">any</span>()) <span class="comment"># tensor(True)</span></span><br><span class="line"></span><br><span class="line">b = torch.tensor([<span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>])</span><br><span class="line"><span class="built_in">print</span>(b.<span class="built_in">any</span>()) <span class="comment"># tensor(False)</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="tensor-all"><a href="#tensor-all" class="headerlink" title="tensor.all()"></a>tensor.all()</h3><p>如果张量中所有元素都为True, 才返回True, 否则返回False</p>
+<h3 id="tensor-all">tensor.all()</h3>
+<p>如果张量中所有元素都为True, 才返回True, 否则返回False</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line">a = torch.tensor([<span class="literal">True</span>,<span class="literal">True</span>,<span class="literal">False</span>])</span><br><span class="line"><span class="built_in">print</span>(a.<span class="built_in">all</span>()) <span class="comment"># tensor(False)</span></span><br><span class="line"></span><br><span class="line">b = torch.tensor([<span class="literal">True</span>,<span class="literal">True</span>,<span class="literal">True</span>])</span><br><span class="line"><span class="built_in">print</span>(b.<span class="built_in">all</span>()) <span class="comment"># tensor(True)</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Python中的inf和nan"><a href="#Python中的inf和nan" class="headerlink" title="Python中的inf和nan"></a>Python中的inf和nan</h3><ul>
+<h3 id="Python中的inf和nan">Python中的inf和nan</h3>
+<ul>
 <li>python中的inf表示无穷大, 可以用<code>float(&quot;inf&quot;)</code>或者<code>float(&quot;-inf&quot;)</code>或者<code>float(&quot;INF&quot;)</code>表示, 所有与inf有关的操作结果都是inf</li>
 <li>python中的nan表示<code>not a number</code>, 不代表任何一个数, 所有设计到nan的操作结果都是nan</li>
 </ul>
-<h3 id="torch-isfinite"><a href="#torch-isfinite" class="headerlink" title="torch.isfinite()"></a>torch.isfinite()</h3><ul>
+<h3 id="torch-isfinite">torch.isfinite()</h3>
+<ul>
 <li>docs: <a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.isfinite.html">https://pytorch.org/docs/stable/generated/torch.isfinite.html</a></li>
 </ul>
 <p>Returns a new tensor with boolean elements representing if each element is finite or not.</p>
@@ -278,13 +281,14 @@
 <ul>
 <li><code>inf</code>, <code>-inf</code>, <code>nan</code>都不是finite的数, 所以返回False</li>
 </ul>
-<h3 id="torch-isnan"><a href="#torch-isnan" class="headerlink" title="torch.isnan()"></a>torch.isnan()</h3><ul>
+<h3 id="torch-isnan">torch.isnan()</h3>
+<ul>
 <li>docs: <a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.isnan.html">https://pytorch.org/docs/stable/generated/torch.isnan.html</a></li>
 </ul>
-<p>Returns a new tensor with boolean elements representing if each element of input is NaN or not. Complex values are considered NaN when either their real and&#x2F;or imaginary part is NaN.</p>
+<p>Returns a new tensor with boolean elements representing if each element of input is NaN or not. Complex values are considered NaN when either their real and/or imaginary part is NaN.</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">torch.isnan(torch.tensor([<span class="number">1</span>, <span class="built_in">float</span>(<span class="string">&#x27;nan&#x27;</span>), <span class="number">2</span>]))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor([<span class="literal">False</span>, <span class="literal">True</span>, <span class="literal">False</span>])</span><br></pre></td></tr></table></figure>
-
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<h2 id="Reference-13">Reference</h2>
+<ul>
 <li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d9caa4ab46e1">认识python中的inf和nan</a></li>
 </ul>
 
@@ -370,7 +374,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#tensor-any"><span class="nav-number">1.1.</span> <span class="nav-text">tensor.any()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tensor-all"><span class="nav-number">1.2.</span> <span class="nav-text">tensor.all()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Python%E4%B8%AD%E7%9A%84inf%E5%92%8Cnan"><span class="nav-number">1.3.</span> <span class="nav-text">Python中的inf和nan</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#torch-isfinite"><span class="nav-number">1.4.</span> <span class="nav-text">torch.isfinite()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#torch-isnan"><span class="nav-number">1.5.</span> <span class="nav-text">torch.isnan()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-9"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#tensor-any"><span class="nav-number">1.1.</span> <span class="nav-text">tensor.any()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tensor-all"><span class="nav-number">1.2.</span> <span class="nav-text">tensor.all()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Python%E4%B8%AD%E7%9A%84inf%E5%92%8Cnan"><span class="nav-number">1.3.</span> <span class="nav-text">Python中的inf和nan</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#torch-isfinite"><span class="nav-number">1.4.</span> <span class="nav-text">torch.isfinite()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#torch-isnan"><span class="nav-number">1.5.</span> <span class="nav-text">torch.isnan()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference-13"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
