@@ -27,16 +27,16 @@
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
 <meta property="og:description" content="本篇文章主要记录一下OneFlow中关于分布式tensor的基本概念SBP: Split, Broadcast, Partial的知识, 以及local global相关的内容的学习笔记~">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://github.com/rentainhe/rentainhe.github.io/raw/main/2022/02/10/oneflow-sbp/data_parallel.png">
+<meta property="og:image" content="http://example.com/2022/02/10/oneflow-sbp/data_parallel.png">
 <meta property="og:image" content="http://example.com/2022/02/10/oneflow-sbp/model_parallel.png">
 <meta property="og:image" content="http://example.com/2022/02/10/oneflow-sbp/pipeline_parallel.png">
 <meta property="og:image" content="http://example.com/2022/02/10/oneflow-sbp/tensor_sbp.png">
 <meta property="article:published_time" content="2022-02-10T06:21:19.000Z">
-<meta property="article:modified_time" content="2022-02-11T17:55:08.373Z">
+<meta property="article:modified_time" content="2022-02-12T09:45:02.593Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="OneFlow">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://github.com/rentainhe/rentainhe.github.io/raw/main/2022/02/10/oneflow-sbp/data_parallel.png">
+<meta name="twitter:image" content="http://example.com/2022/02/10/oneflow-sbp/data_parallel.png">
 
 <link rel="canonical" href="http://example.com/2022/02/10/oneflow-sbp/">
 
@@ -212,7 +212,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-02-12 01:55:08" itemprop="dateModified" datetime="2022-02-12T01:55:08+08:00">2022-02-12</time>
+                <time title="Modified: 2022-02-12 17:45:02" itemprop="dateModified" datetime="2022-02-12T17:45:02+08:00">2022-02-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -275,7 +275,8 @@
 <ul>
 <li><strong>数据并行</strong>: 所谓的数据并行意思是将数据按照参与训练的GPU数量进行切分，并且在每一个GPU上都有一个完整的模型, 我们这里先不去纠结梯度相关的概念, 只需要看这个tensor的执行</li>
 </ul>
-<p><img src="https://github.com/rentainhe/rentainhe.github.io/raw/main/2022/02/10/oneflow-sbp/data_parallel.png" alt="data_parallel"></p>
+<!-- ![data_parallel](https://github.com/rentainhe/rentainhe.github.io/raw/main/2022/02/10/oneflow-sbp/data_parallel.png) -->
+<img src="/2022/02/10/oneflow-sbp/data_parallel.png" class title="data_parallel">
 <p>可以看到原本输入的数据<code>(4, 5)</code>被平分到不同的卡上, 每张卡的数据大小时<code>(2, 5)</code>, 在经过计算后, concat到一起变成<code>(4, 5)</code>, 才是完整的输出</p>
 <ul>
 <li><strong>模型并行</strong>: 模型并行的意思是, 将模型拆分到不同的卡上, 但是每张卡上拿到的数据都是一样的</li>
