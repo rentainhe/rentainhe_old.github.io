@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="本篇文章带来开源大模型训练库LiBai中的分布式环境配置相关内容的学习, 但是由于相关的接口已经从device改成rank, 所以这篇文章内容上并不是最新的, 但是可以帮助理解一些概念">
+  <meta name="description" content="本篇文章带来开源大模型训练库LiBai中的分布式环境配置相关内容的学习, 但是由于相关的接口已经从device改成rank, 所以文章内容排版不一定很正确, 但是也可以帮助理解一些概念">
 <meta property="og:type" content="article">
-<meta property="og:title" content="LiBai Learning (0): Distributed Environment (Old Version)">
+<meta property="og:title" content="LiBai Learning (0): Distributed Environment">
 <meta property="og:url" content="http://example.com/2022/02/15/libai-env/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="本篇文章带来开源大模型训练库LiBai中的分布式环境配置相关内容的学习, 但是由于相关的接口已经从device改成rank, 所以这篇文章内容上并不是最新的, 但是可以帮助理解一些概念">
+<meta property="og:description" content="本篇文章带来开源大模型训练库LiBai中的分布式环境配置相关内容的学习, 但是由于相关的接口已经从device改成rank, 所以文章内容排版不一定很正确, 但是也可以帮助理解一些概念">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-02-15T04:44:59.000Z">
-<meta property="article:modified_time" content="2022-02-16T05:35:30.436Z">
+<meta property="article:modified_time" content="2022-02-16T07:42:25.256Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="LiBai">
 <meta name="twitter:card" content="summary">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>LiBai Learning (0): Distributed Environment (Old Version) | RenTianhe's Blog</title>
+  <title>LiBai Learning (0): Distributed Environment | RenTianhe's Blog</title>
   
 
 
@@ -190,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          LiBai Learning (0): Distributed Environment (Old Version)
+          LiBai Learning (0): Distributed Environment
         </h1>
 
         <div class="post-meta">
@@ -207,7 +207,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-02-16 13:35:30" itemprop="dateModified" datetime="2022-02-16T13:35:30+08:00">2022-02-16</time>
+                <time title="Modified: 2022-02-16 15:42:25" itemprop="dateModified" datetime="2022-02-16T15:42:25+08:00">2022-02-16</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -232,14 +232,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>6.3k</span>
+              <span>7.5k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>6 mins.</span>
+              <span>7 mins.</span>
             </span>
 
         </div>
@@ -251,7 +251,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>本篇文章带来开源大模型训练库LiBai中的分布式环境配置相关内容的学习, 但是由于相关的接口已经从device改成rank, 所以这篇文章内容上并不是最新的, 但是可以帮助理解一些概念</p>
+        <p>本篇文章带来开源大模型训练库LiBai中的分布式环境配置相关内容的学习, 但是由于相关的接口已经从device改成rank, 所以文章内容排版不一定很正确, 但是也可以帮助理解一些概念</p>
 <span id="more"></span>
 <h2 id="Contents">Contents</h2>
 <ul>
@@ -260,6 +260,7 @@
 <ul>
 <li><a href="#oneflow-env%E7%9B%B8%E5%85%B3%E6%8E%A5%E5%8F%A3">OneFlow Env相关接口</a></li>
 <li><a href="#libai%E4%B8%AD%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE">LiBai中的分布式相关配置</a></li>
+<li><a href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%85%8D%E7%BD%AE%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%B9%E5%8A%A8">分布式配置相关的改动</a></li>
 </ul>
 </li>
 </ul>
@@ -294,6 +295,12 @@
 <li>设置placement</li>
 </ul>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_init_placement_group</span>(<span class="params">self, cfg</span>):</span></span><br><span class="line">    <span class="comment"># 当2机8卡的时候</span></span><br><span class="line">    <span class="comment"># node_ids对应每个GPU所在的节点</span></span><br><span class="line">    <span class="comment"># node_ids = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1]</span></span><br><span class="line">    node_ids = [i // self.num_gpus_per_node <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(self.world_size)]</span><br><span class="line">    <span class="comment"># device_ids对应每个GPU的卡号</span></span><br><span class="line">    <span class="comment"># device_ids = [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7]</span></span><br><span class="line">    device_ids = <span class="built_in">list</span>(<span class="built_in">range</span>(self.num_gpus_per_node)) * self.num_nodes</span><br><span class="line"></span><br><span class="line">    <span class="comment"># devices是一个list(tuple)其中每个元组表示一个(节点: 卡号)对</span></span><br><span class="line">    <span class="comment"># [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7)]</span></span><br><span class="line">    devices = [(n, d) <span class="keyword">for</span> n, d <span class="keyword">in</span> <span class="built_in">zip</span>(node_ids, device_ids)]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2机8卡, 2阶段流水, 每个阶段为8卡, num_devices_per_stage=2</span></span><br><span class="line">    num_devices_per_stage = self.world_size // self._pipeline_parallel_size</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># [&#123;0: [0, 1, 2, 3, 4, 5, 6, 7]&#125;, &#123;1: [0, 1, 2, 3, 4, 5, 6, 7]&#125;]</span></span><br><span class="line">    <span class="comment"># 如果为4阶段流水的话, 这里返回的是: </span></span><br><span class="line">    <span class="comment"># [&#123;0: [0, 1, 2, 3]&#125;, &#123;0: [4, 5, 6, 7]&#125;, &#123;1: [0, 1, 2, 3]&#125;, &#123;1: [4, 5, 6, 7]&#125;], 表示每个阶段流水并行所在的节点以及GPU</span></span><br><span class="line">    stages_devices = [</span><br><span class="line">        _merge_devices(devices[i : (i + num_devices_per_stage)])</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, self.world_size, num_devices_per_stage)</span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">assert</span> cfg.pipeline_num_layers % self._pipeline_parallel_size == <span class="number">0</span>, (</span><br><span class="line">        <span class="string">f&quot;number of layers (<span class="subst">&#123;cfg.pipeline_num_layers&#125;</span>) is not divisible by&quot;</span></span><br><span class="line">        <span class="string">f&quot; pipeline model parallel size (<span class="subst">&#123;self._pipeline_parallel_size&#125;</span>)&quot;</span></span><br><span class="line">    )</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 根据你模型的层数决定, 假设12层的模型, 要分成4个阶段流水</span></span><br><span class="line">    <span class="comment"># 那么这里的pipeline_num_layers为12, pipeline_parallel_size为4</span></span><br><span class="line">    <span class="comment"># 每个阶段流水的layers为3层 = 12 // 4</span></span><br><span class="line">    num_layers_per_stage = cfg.pipeline_num_layers // self._pipeline_parallel_size</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 求layers的每一层的placement是什么</span></span><br><span class="line">    <span class="comment"># stage的概念: 12层分4个流水线, 就是分成了4个stage, stage_id告诉你这个层在哪个stage</span></span><br><span class="line">    <span class="comment"># 12层网络4阶段流水, 代入后返回 [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3]</span></span><br><span class="line">    self._layers_stage_ids = [i // num_layers_per_stage <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(cfg.pipeline_num_layers)]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 这里表示的是每层layer的placement, 比如第一层就是&#123;0: [0, 1, 2, 3]&#125;表示是第一阶段流水, 放置在0号节点的[0, 1, 2, 3]号卡上</span></span><br><span class="line">    <span class="comment"># [&#123;0: [0, 1, 2, 3]&#125;, &#123;0: [0, 1, 2, 3]&#125;, &#123;0: [0, 1, 2, 3]&#125;, &#123;0: [4, 5, 6, 7]&#125;, &#123;0: [4, 5, 6, 7]&#125;, &#123;0: [4, 5, 6, 7]&#125;, &#123;1: [0, 1, 2, 3]&#125;, &#123;1: [0, 1, 2, 3]&#125;, &#123;1: [0, 1, 2, 3]&#125;, &#123;1: [4, 5, 6, 7]&#125;, &#123;1: [4, 5, 6, 7]&#125;, &#123;1: [4, 5, 6, 7]&#125;]</span></span><br><span class="line">    self._layers_devices = [stages_devices[stage_id] <span class="keyword">for</span> stage_id <span class="keyword">in</span> self._layers_stage_ids]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_init_parallel_hierarchy</span>(<span class="params">self</span>):</span></span><br><span class="line">    <span class="keyword">if</span> self.is_data_model_parallel():</span><br><span class="line">        self._parallel_hierarchy = (</span><br><span class="line">            self._data_parallel_size,</span><br><span class="line">            self._tensor_parallel_size,</span><br><span class="line">        )</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        self._parallel_hierarchy = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_merge_devices</span>(<span class="params">devices</span>):</span></span><br><span class="line">    node_devices = <span class="built_in">dict</span>()</span><br><span class="line">    <span class="keyword">for</span> node_id, device_id <span class="keyword">in</span> devices:</span><br><span class="line">        <span class="keyword">if</span> node_id <span class="keyword">not</span> <span class="keyword">in</span> node_devices:</span><br><span class="line">            node_devices[node_id] = []</span><br><span class="line"></span><br><span class="line">        node_devices[node_id].append(device_id)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> node_devices</span><br></pre></td></tr></table></figure>
+<h3 id="分布式配置相关的改动">分布式配置相关的改动</h3>
+<ul>
+<li>在新版的API中, 已经从devices改成了rank, 以后各阶段的流水可以用全局rank来表示, 不用特地标注出是在哪个节点的哪几张卡上</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 之前的4阶段2机8卡流水并行表示</span></span><br><span class="line"><span class="comment"># [&#123;0: [0, 1, 2, 3]&#125;, &#123;0: [4, 5, 6, 7]&#125;, &#123;1: [0, 1, 2, 3]&#125;, &#123;1: [4, 5, 6, 7]&#125;]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 现在改为全局rank表示</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_merge_devices</span>(<span class="params">devices</span>):</span></span><br><span class="line">    num_gpus_per_node = get_world_size() // get_num_nodes()</span><br><span class="line">    node_devices = [node_id * num_gpus_per_node + device_id <span class="keyword">for</span> node_id, device_id <span class="keyword">in</span> devices]</span><br><span class="line">    <span class="keyword">return</span> node_devices</span><br><span class="line"></span><br><span class="line">stages_devices = [</span><br><span class="line">    _merge_devices(devices[i : (i + num_devices_per_stage)])</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, self.world_size, num_devices_per_stage)</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">stages_devices = [[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>], [<span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">11</span>], [<span class="number">12</span>, <span class="number">13</span>, <span class="number">14</span>, <span class="number">15</span>]]  <span class="comment"># 这里面的rank都表示GPU的全局rank</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">stages_devices = [[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], [<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>], [<span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>, <span class="number">11</span>], [<span class="number">12</span>, <span class="number">13</span>, <span class="number">14</span>, <span class="number">15</span>]]</span><br><span class="line"><span class="comment"># Layer Stage Ids表示每个Layer放在哪一阶段的流水上</span></span><br><span class="line">num_layers_per_stage = cfg.pipeline_num_layers // self._pipeline_parallel_size</span><br><span class="line">self._layer_stage_ids = [i // num_layers_per_stage <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(cfg.pipeline_num_layers)]</span><br><span class="line"><span class="comment"># 假设12层, 4阶段流水</span></span><br><span class="line">_layer_stage_ids = [i // <span class="number">4</span> <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">12</span>)]  <span class="comment"># [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3]</span></span><br><span class="line"><span class="comment"># 每层Layer的rank</span></span><br><span class="line">_layer_ranks = [stages_devices[stage_id] <span class="keyword">for</span> stage_id <span class="keyword">in</span> _layer_stage_ids]</span><br><span class="line"><span class="comment"># [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3], [4, 5, 6, 7], [4, 5, 6, 7], [4, 5, 6, 7], [8, 9, 10, 11], [8, 9, 10, 11], [8, 9, 10, 11], [12, 13, 14, 15], [12, 13, 14, 15], [12, 13, 14, 15]]</span></span><br><span class="line"><span class="comment"># 前三层Layer都在第一个流水阶段即都在[0, 1, 2, 3]卡上</span></span><br></pre></td></tr></table></figure>
 
     </div>
 
@@ -374,7 +381,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prior-Knowledge"><span class="nav-number">2.</span> <span class="nav-text">Prior Knowledge</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#OneFlow-Env%E7%9B%B8%E5%85%B3%E6%8E%A5%E5%8F%A3"><span class="nav-number">2.1.</span> <span class="nav-text">OneFlow Env相关接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LiBai%E4%B8%AD%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="nav-number">2.2.</span> <span class="nav-text">LiBai中的分布式相关配置</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prior-Knowledge"><span class="nav-number">2.</span> <span class="nav-text">Prior Knowledge</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#OneFlow-Env%E7%9B%B8%E5%85%B3%E6%8E%A5%E5%8F%A3"><span class="nav-number">2.1.</span> <span class="nav-text">OneFlow Env相关接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LiBai%E4%B8%AD%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="nav-number">2.2.</span> <span class="nav-text">LiBai中的分布式相关配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%85%8D%E7%BD%AE%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%B9%E5%8A%A8"><span class="nav-number">2.3.</span> <span class="nav-text">分布式配置相关的改动</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -449,13 +456,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">65k</span>
+    <span title="Symbols count total">66k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">59 mins.</span>
+    <span title="Reading time total">1:01</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
