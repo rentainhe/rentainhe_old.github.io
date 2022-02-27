@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="本篇文章针对COCO数据集的标注进行了简要介绍">
+  <meta name="description" content="本文对COCO数据集的标注格式进行学习与记录~">
 <meta property="og:type" content="article">
-<meta property="og:title" content="COCO数据集的标注格式">
+<meta property="og:title" content="COCO数据集的标注格式 (未完成)">
 <meta property="og:url" content="http://example.com/2022/01/30/coco_data/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="本篇文章针对COCO数据集的标注进行了简要介绍">
+<meta property="og:description" content="本文对COCO数据集的标注格式进行学习与记录~">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-01-30T06:34:04.000Z">
-<meta property="article:modified_time" content="2022-01-31T02:44:12.558Z">
+<meta property="article:modified_time" content="2022-02-21T12:27:54.213Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="Python">
 <meta name="twitter:card" content="summary">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>COCO数据集的标注格式 | RenTianhe's Blog</title>
+  <title>COCO数据集的标注格式 (未完成) | RenTianhe's Blog</title>
   
 
 
@@ -136,7 +136,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">24</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">25</span></a>
 
   </li>
         <li class="menu-item menu-item-projects">
@@ -190,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          COCO数据集的标注格式
+          COCO数据集的标注格式 (未完成)
         </h1>
 
         <div class="post-meta">
@@ -207,7 +207,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-01-31 10:44:12" itemprop="dateModified" datetime="2022-01-31T10:44:12+08:00">2022-01-31</time>
+                <time title="Modified: 2022-02-21 20:27:54" itemprop="dateModified" datetime="2022-02-21T20:27:54+08:00">2022-02-21</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -232,14 +232,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.5k</span>
+              <span>3.8k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>1 mins.</span>
+              <span>3 mins.</span>
             </span>
 
         </div>
@@ -251,33 +251,80 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>本篇文章针对COCO数据集的标注进行了简要介绍</p>
+        <p>本文对COCO数据集的标注格式进行学习与记录~</p>
 <span id="more"></span>
-<h3 id="Reference-6">Reference</h3>
+<h2 id="Contents">Contents</h2>
 <ul>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/70878433">COCO数据集的简单介绍</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/84214563">COCO数据集以及COCOAPI</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/110676412">MSCOCO物体检测评测系统的分析</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/29393415"><strong>COCO数据集的标注形式</strong></a></li>
-<li><a target="_blank" rel="noopener" href="https://tangh.github.io/articles/coco-and-cityscapes-datasets/"><strong>*COCO 和 CityScapes 数据集的标注格式和使用</strong></a></li>
-</ul>
-<h3 id="最顶层形式">最顶层形式</h3>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;info&quot;: info,</span><br><span class="line">    &quot;licenses&quot;: [license],</span><br><span class="line">    &quot;images&quot;: [image],</span><br><span class="line">    &quot;annotations&quot;: [annotation],</span><br><span class="line">    &quot;categories&quot;: [category]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<li><a href="#contents">Contents</a>
 <ul>
-<li><code>images</code>字段列表长度等于数据集<code>(train2014, val2014,...)</code>中的图片数量</li>
-<li><code>annotations</code>字段列表长度等于数据集中的bbox数量</li>
-<li><code>categories</code>字段列表长度等价于类别的数量，coco2017中为80类</li>
+<li><a href="#coco%E6%95%B0%E6%8D%AE%E9%9B%86%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A0%BC%E5%BC%8F">COCO数据集的基本格式</a></li>
+<li><a href="#coco%E6%95%B0%E6%8D%AE%E9%9B%86%E6%A0%87%E6%B3%A8%E4%B8%AD%E9%80%9A%E7%94%A8%E6%A0%87%E6%B3%A8%E6%95%B0%E6%8D%AE%E8%A7%A3%E6%9E%90">COCO数据集标注中通用标注数据解析</a></li>
+<li><a href="#object-instance%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%A0%87%E6%B3%A8%E6%A0%BC%E5%BC%8F">Object Instance类型的标注格式</a>
+<ul>
+<li><a href="#%E6%95%B4%E4%BD%93json%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F">整体JSON文件格式</a></li>
+<li><a href="#annotation%E5%AD%97%E6%AE%B5%E8%AF%B4%E6%98%8E">annotation字段说明</a></li>
 </ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>ann_train_file=<span class="string">&#x27;annotations/instances_train2017.json&#x27;</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>coco_train = COCO(ann_train_file)</span><br><span class="line">loading annotations into memory...</span><br><span class="line">Done (t=<span class="number">19.30</span>s)</span><br><span class="line">creating index...</span><br><span class="line">index created!</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">len</span>(coco_train.dataset[<span class="string">&#x27;categories&#x27;</span>])</span><br><span class="line"><span class="number">80</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">len</span>(coco_train.dataset[<span class="string">&#x27;images&#x27;</span>])</span><br><span class="line"><span class="number">118287</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">len</span>(coco_train.dataset[<span class="string">&#x27;annotations&#x27;</span>])</span><br><span class="line"><span class="number">860001</span></span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
-<h3 id="子层中的形式">子层中的形式</h3>
-<h4 id="images中每个数据的形式">images中每个数据的形式</h4>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> data[<span class="string">&quot;images&quot;</span>][<span class="number">0</span>]:</span><br><span class="line">    <span class="built_in">print</span>(k)</span><br><span class="line">-----------------------------</span><br><span class="line">license</span><br><span class="line">file_name</span><br><span class="line">coco_url</span><br><span class="line">height</span><br><span class="line">width</span><br><span class="line">date_captured</span><br><span class="line">flickr_url</span><br><span class="line"><span class="built_in">id</span></span><br></pre></td></tr></table></figure>
-<h4 id="annotations中的每个数据形式，这是最重要的">annotations中的每个数据形式，这是最重要的</h4>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> data[<span class="string">&quot;annotations &quot;</span>][<span class="number">0</span>]:</span><br><span class="line">    <span class="built_in">print</span>(k)</span><br><span class="line">------------------------------------</span><br><span class="line">segmentation</span><br><span class="line">area</span><br><span class="line">iscrowd</span><br><span class="line">image_id</span><br><span class="line">bbox</span><br><span class="line">category_id</span><br><span class="line"><span class="built_in">id</span></span><br></pre></td></tr></table></figure>
-<p>各个数据的标注格式</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">annotation&#123;</span><br><span class="line">    &quot;id&quot;: int,    </span><br><span class="line">    &quot;image_id&quot;: int,</span><br><span class="line">    &quot;category_id&quot;: int,</span><br><span class="line">    &quot;segmentation&quot;: RLE or [polygon],</span><br><span class="line">    &quot;area&quot;: float,</span><br><span class="line">    &quot;bbox&quot;: [x,y,width,height],</span><br><span class="line">    &quot;iscrowd&quot;: 0 or 1,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="categories中的每个数据格式">categories中的每个数据格式</h4>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> data[<span class="string">&quot;categories&quot;</span>][<span class="number">0</span>]:</span><br><span class="line">    <span class="built_in">print</span>(k)</span><br><span class="line">-----------------------------------</span><br><span class="line">supercategory</span><br><span class="line"><span class="built_in">id</span></span><br><span class="line">name</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h3 id="COCO数据集的基本格式">COCO数据集的基本格式</h3>
+<ul>
+<li>MSCOCO 2017的3种标注类型: <code>object instances(目标实例)</code>, <code>object keypoints(目标上的关键点)</code>, <code>image captions(看图说话)</code>, 按照训练和测试集主要可以分为以下六个文件:</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># captioning</span></span><br><span class="line">- captions_train2017.json</span><br><span class="line">- captions_val2017.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># detection or segmentation</span></span><br><span class="line">- instances_train2017.json</span><br><span class="line">- instances_val2017.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># keypoints</span></span><br><span class="line">- person_keypoints_train2017.json</span><br><span class="line">- person_keypoints_val2017.json</span><br></pre></td></tr></table></figure>
+<ul>
+<li>MSCOCO的Annotation中主要包括以下几个基本类型</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;info&quot;</span>: info,</span><br><span class="line">    <span class="string">&quot;licenses&quot;</span>: [license],</span><br><span class="line">    <span class="string">&quot;images&quot;</span>: [image],</span><br><span class="line">    <span class="string">&quot;annotations&quot;</span>: [annotation],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="COCO数据集标注中通用标注数据解析">COCO数据集标注中通用标注数据解析</h3>
+<ul>
+<li>在MSCOCO中除了annotations之外, <code>info</code>, <code>licenses</code>和<code>images</code>三个基本类型是共享的</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">info&#123;</span><br><span class="line">    <span class="string">&quot;year&quot;</span>: <span class="built_in">int</span>,</span><br><span class="line">    <span class="string">&quot;version&quot;</span>: <span class="built_in">str</span>,</span><br><span class="line">    <span class="string">&quot;description&quot;</span>: <span class="built_in">str</span>,</span><br><span class="line">    <span class="string">&quot;contributor&quot;</span>: <span class="built_in">str</span>,</span><br><span class="line">    <span class="string">&quot;url&quot;</span>: <span class="built_in">str</span>,</span><br><span class="line">    <span class="string">&quot;date_created&quot;</span>: datetime,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">license&#123;</span><br><span class="line">    <span class="string">&quot;id&quot;</span>: <span class="built_in">int</span>,</span><br><span class="line">    <span class="string">&quot;name&quot;</span>: <span class="built_in">str</span>,</span><br><span class="line">    <span class="string">&quot;url&quot;</span>: <span class="built_in">str</span>,</span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line">image&#123;</span><br><span class="line">    <span class="string">&quot;id&quot;</span>: <span class="built_in">int</span>,</span><br><span class="line">    <span class="string">&quot;width&quot;</span>: <span class="built_in">int</span>,</span><br><span class="line">    <span class="string">&quot;height&quot;</span>: <span class="built_in">int</span>,</span><br><span class="line">    <span class="string">&quot;file_name&quot;</span>: <span class="built_in">str</span>,</span><br><span class="line">    <span class="string">&quot;license&quot;</span>: <span class="built_in">int</span>,</span><br><span class="line">    <span class="string">&quot;flickr_url&quot;</span>: <span class="built_in">str</span>,</span><br><span class="line">    <span class="string">&quot;coco_url&quot;</span>: <span class="built_in">str</span>,</span><br><span class="line">    <span class="string">&quot;date_captured&quot;</span>: datetime,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>info类型</strong>:</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;info&quot;</span>:&#123;</span><br><span class="line">	<span class="string">&quot;description&quot;</span>:<span class="string">&quot;This is stable 1.0 version of the 2014 MS COCO dataset.&quot;</span>,</span><br><span class="line">	<span class="string">&quot;url&quot;</span>:<span class="string">&quot;http:\/\/mscoco.org&quot;</span>,</span><br><span class="line">	<span class="string">&quot;version&quot;</span>:<span class="string">&quot;1.0&quot;</span>,<span class="string">&quot;year&quot;</span>:<span class="number">2014</span>,</span><br><span class="line">	<span class="string">&quot;contributor&quot;</span>:<span class="string">&quot;Microsoft COCO group&quot;</span>,</span><br><span class="line">	<span class="string">&quot;date_created&quot;</span>:<span class="string">&quot;2015-01-27 09:11:52.357475&quot;</span></span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>images类型: 包括多个image实例的数组, 举例如下</strong></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="string">&quot;license&quot;</span>:<span class="number">3</span>,</span><br><span class="line">	<span class="string">&quot;file_name&quot;</span>:<span class="string">&quot;COCO_val2014_000000391895.jpg&quot;</span>,</span><br><span class="line">	<span class="string">&quot;coco_url&quot;</span>:<span class="string">&quot;http:\/\/mscoco.org\/images\/391895&quot;</span>,</span><br><span class="line">	<span class="string">&quot;height&quot;</span>:<span class="number">360</span>,<span class="string">&quot;width&quot;</span>:<span class="number">640</span>,<span class="string">&quot;date_captured&quot;</span>:<span class="string">&quot;2013-11-14 11:18:45&quot;</span>,</span><br><span class="line">	<span class="string">&quot;flickr_url&quot;</span>:<span class="string">&quot;http:\/\/farm9.staticflickr.com\/8186\/8119368305_4e622c8349_z.jpg&quot;</span>,</span><br><span class="line">	<span class="string">&quot;id&quot;</span>:<span class="number">391895</span></span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>licenses类型: 包括多个license实例的数组, 举例如下</strong></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="string">&quot;url&quot;</span>:<span class="string">&quot;http:\/\/creativecommons.org\/licenses\/by-nc-sa\/2.0\/&quot;</span>,</span><br><span class="line">	<span class="string">&quot;id&quot;</span>:<span class="number">1</span>,</span><br><span class="line">	<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Attribution-NonCommercial-ShareAlike License&quot;</span></span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+<h3 id="Object-Instance类型的标注格式">Object Instance类型的标注格式</h3>
+<h4 id="整体JSON文件格式">整体JSON文件格式</h4>
+<p>由于检测任务, 关键点检测, captioning的标注格式不一样, 由于笔者主要对检测任务感兴趣, 所以这边主要以检测任务的标注为例来看看coco中的instance相关的标注格式, 主要相关的标注文件为<code>instances_train2017.json</code>和<code>instances_val2017.json</code></p>
+<ul>
+<li><code>instances_train2017.json</code>和<code>instances_val2017.json</code>的格式主要分为以下几个部分</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;info&quot;</span>: info,</span><br><span class="line">    <span class="string">&quot;licenses&quot;</span>: [license],</span><br><span class="line">    <span class="string">&quot;images&quot;</span>: [image],</span><br><span class="line">    <span class="string">&quot;annotations&quot;</span>: [annotation],</span><br><span class="line">    <span class="string">&quot;categories&quot;</span>: [category]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中<code>info</code>, <code>licenses</code>和<code>images</code>还是共享的, 所以我们主要看<code>annotations</code>和<code>categories</code>:</p>
+<ul>
+<li><code>images</code>数组元素的数量等于训练集或者测试集中图片的总数量</li>
+<li><code>annotations</code>数组元素的数量等于训练集或者测试集中Bounding Box的数量</li>
+<li><code>categories</code>数组元素的数量为总的类别数, 在MSCOCO 2017中是80</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用一段代码来查看数组长度</span></span><br><span class="line"><span class="keyword">from</span> pycocotools.coco <span class="keyword">import</span> COCO</span><br><span class="line"></span><br><span class="line">ann_path = <span class="string">&quot;/dataset/mscoco_2017/annotations/instances_train2017.json&quot;</span></span><br><span class="line"></span><br><span class="line">coco_train = COCO(ann_path)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(coco_train.dataset[<span class="string">&quot;categories&quot;</span>]))  <span class="comment"># 80</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(coco_train.dataset[<span class="string">&quot;images&quot;</span>]))  <span class="comment"># 118287</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(coco_train.dataset[<span class="string">&quot;annotations&quot;</span>]))  <span class="comment"># 860001</span></span><br></pre></td></tr></table></figure>
+<h4 id="annotation字段说明">annotation字段说明</h4>
+<p>annotation字段是包含<strong>多个annotation实例</strong>的一个数组, annotation类型本身又包含了一系列字段, 比如这个目标的<code>category id</code>和<code>segmentation mask</code>.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">annotation&#123;</span><br><span class="line">    <span class="string">&quot;id&quot;</span>: <span class="built_in">int</span>,    </span><br><span class="line">    <span class="string">&quot;image_id&quot;</span>: <span class="built_in">int</span>,</span><br><span class="line">    <span class="string">&quot;category_id&quot;</span>: <span class="built_in">int</span>,</span><br><span class="line">    <span class="string">&quot;segmentation&quot;</span>: RLE <span class="keyword">or</span> [polygon],</span><br><span class="line">    <span class="string">&quot;area&quot;</span>: <span class="built_in">float</span>,</span><br><span class="line">    <span class="string">&quot;bbox&quot;</span>: [x,y,width,height],</span><br><span class="line">    <span class="string">&quot;iscrowd&quot;</span>: <span class="number">0</span> <span class="keyword">or</span> <span class="number">1</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中segmentation有两种数据格式, 分别为<code>RLE</code>格式和<code>polygon</code>格式, 根据iscrowd为0或者1来判断格式:</p>
+<ul>
+<li><code>iscrowd=0</code>: <code>segmentation</code>中的字段为<code>polygon</code>格式, 表示这个对象是一个单独的物体, 没有和别的对象中有重叠或者有被遮挡的区域, 轮廓就用多边形的点(Polygon)来表示, 每两个值表示一个坐标, 如果有<code>n</code>个数的话, 就是有<code>n/2</code>个坐标</li>
+<li><code>iscrowd=1</code>: <code>segmentation</code>中的字段为<code>RLE</code>格式, RLE表示二值图, 假设有一个<code>3x3</code> size大小的图片,</li>
+</ul>
+<h2 id="Reference">Reference</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=h6s61a_pqfM&amp;t=341s">(必看)YouTube视频: COCO Dataset Format - Complete Walkthrough</a></li>
+<li><a target="_blank" rel="noopener" href="https://tangh.github.io/articles/coco-and-cityscapes-datasets/">(必看)COCO和CityScapes数据集的标注和使用</a></li>
+<li><a target="_blank" rel="noopener" href="https://supwills.com/post/coco-datasets-and-its-api/#fn2">COCO Datasets and Its API</a></li>
+<li><a target="_blank" rel="noopener" href="https://hellozhaozheng.github.io/z_post/%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89-%E6%95%B0%E6%8D%AE%E9%9B%86-COCO/">Microsoft COCO数据集</a></li>
+</ul>
+
     </div>
 
     
@@ -360,7 +407,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference-6"><span class="nav-number">1.</span> <span class="nav-text">Reference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E9%A1%B6%E5%B1%82%E5%BD%A2%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">最顶层形式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%90%E5%B1%82%E4%B8%AD%E7%9A%84%E5%BD%A2%E5%BC%8F"><span class="nav-number">3.</span> <span class="nav-text">子层中的形式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#images%E4%B8%AD%E6%AF%8F%E4%B8%AA%E6%95%B0%E6%8D%AE%E7%9A%84%E5%BD%A2%E5%BC%8F"><span class="nav-number">3.1.</span> <span class="nav-text">images中每个数据的形式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#annotations%E4%B8%AD%E7%9A%84%E6%AF%8F%E4%B8%AA%E6%95%B0%E6%8D%AE%E5%BD%A2%E5%BC%8F%EF%BC%8C%E8%BF%99%E6%98%AF%E6%9C%80%E9%87%8D%E8%A6%81%E7%9A%84"><span class="nav-number">3.2.</span> <span class="nav-text">annotations中的每个数据形式，这是最重要的</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#categories%E4%B8%AD%E7%9A%84%E6%AF%8F%E4%B8%AA%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F"><span class="nav-number">3.3.</span> <span class="nav-text">categories中的每个数据格式</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#COCO%E6%95%B0%E6%8D%AE%E9%9B%86%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.1.</span> <span class="nav-text">COCO数据集的基本格式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#COCO%E6%95%B0%E6%8D%AE%E9%9B%86%E6%A0%87%E6%B3%A8%E4%B8%AD%E9%80%9A%E7%94%A8%E6%A0%87%E6%B3%A8%E6%95%B0%E6%8D%AE%E8%A7%A3%E6%9E%90"><span class="nav-number">1.2.</span> <span class="nav-text">COCO数据集标注中通用标注数据解析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Object-Instance%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%A0%87%E6%B3%A8%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.3.</span> <span class="nav-text">Object Instance类型的标注格式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B4%E4%BD%93JSON%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.3.1.</span> <span class="nav-text">整体JSON文件格式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#annotation%E5%AD%97%E6%AE%B5%E8%AF%B4%E6%98%8E"><span class="nav-number">1.3.2.</span> <span class="nav-text">annotation字段说明</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -374,7 +421,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">25</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -435,13 +482,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">72k</span>
+    <span title="Symbols count total">79k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">1:06</span>
+    <span title="Reading time total">1:12</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
