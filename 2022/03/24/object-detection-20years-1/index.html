@@ -20,20 +20,26 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="记录Linux中关于pwd和$PWD的学习以及和cd $PWD的神奇用法">
+  <meta name="description" content="本文为理解最早期一篇人脸实时检测器(VJ Detector)的相关笔记">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Linux Learning (1): pwd与$PWD">
-<meta property="og:url" content="http://example.com/2022/02/12/linux-pwd/index.html">
+<meta property="og:title" content="Object Detection (1): VJ Detector与积分图像">
+<meta property="og:url" content="http://example.com/2022/03/24/object-detection-20years-1/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="记录Linux中关于pwd和$PWD的学习以及和cd $PWD的神奇用法">
+<meta property="og:description" content="本文为理解最早期一篇人脸实时检测器(VJ Detector)的相关笔记">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2022-02-12T13:08:44.000Z">
-<meta property="article:modified_time" content="2022-02-12T16:20:22.149Z">
+<meta property="og:image" content="http://example.com/2022/03/24/object-detection-20years-1/haar.png">
+<meta property="og:image" content="http://example.com/2022/03/24/object-detection-20years-1/haar_adaboost.png">
+<meta property="og:image" content="http://example.com/2022/03/24/object-detection-20years-1/integral_image_1.png">
+<meta property="og:image" content="http://example.com/2022/03/24/object-detection-20years-1/integral_image_2.png">
+<meta property="og:image" content="http://example.com/2022/03/24/object-detection-20years-1/intergral_image_3.png">
+<meta property="article:published_time" content="2022-03-24T12:56:01.000Z">
+<meta property="article:modified_time" content="2022-03-24T14:01:37.242Z">
 <meta property="article:author" content="Ren Tianhe">
-<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="Object Detection">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/03/24/object-detection-20years-1/haar.png">
 
-<link rel="canonical" href="http://example.com/2022/02/12/linux-pwd/">
+<link rel="canonical" href="http://example.com/2022/03/24/object-detection-20years-1/">
 
 
 <script id="page-configurations">
@@ -46,7 +52,7 @@
   };
 </script>
 
-  <title>Linux Learning (1): pwd与$PWD | RenTianhe's Blog</title>
+  <title>Object Detection (1): VJ Detector与积分图像 | RenTianhe's Blog</title>
   
 
 
@@ -177,7 +183,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/02/12/linux-pwd/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/24/object-detection-20years-1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -190,7 +196,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Linux Learning (1): pwd与$PWD
+          Object Detection (1): VJ Detector与积分图像
         </h1>
 
         <div class="post-meta">
@@ -199,23 +205,17 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2022-02-12 21:08:44" itemprop="dateCreated datePublished" datetime="2022-02-12T21:08:44+08:00">2022-02-12</time>
+              <time title="Created: 2022-03-24 20:56:01 / Modified: 22:01:37" itemprop="dateCreated datePublished" datetime="2022-03-24T20:56:01+08:00">2022-03-24</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-02-13 00:20:22" itemprop="dateModified" datetime="2022-02-13T00:20:22+08:00">2022-02-13</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">In</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux-Learning/" itemprop="url" rel="index"><span itemprop="name">Linux Learning</span></a>
+                  <a href="/categories/Object-Detection-Notes/" itemprop="url" rel="index"><span itemprop="name">Object Detection Notes</span></a>
                 </span>
             </span>
 
@@ -232,14 +232,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>539</span>
+              <span>1.8k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>1 mins.</span>
+              <span>2 mins.</span>
             </span>
 
         </div>
@@ -251,42 +251,95 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>记录Linux中关于<code>pwd</code>和<code>$PWD</code>的学习以及和<code>cd $PWD</code>的神奇用法</p>
+        <p>本文为理解最早期一篇人脸实时检测器(VJ Detector)的相关笔记</p>
 <span id="more"></span>
 <h2 id="Contents">Contents</h2>
 <ul>
 <li><a href="#contents">Contents</a>
 <ul>
-<li><a href="#linux%E7%9A%84pwd%E5%92%8Cpwd">Linux的pwd和$PWD</a></li>
-<li><a href="#cd-pwd%E7%9A%84%E7%A5%9E%E5%A5%87%E4%BD%BF%E7%94%A8"><code>cd $PWD</code>的神奇使用</a></li>
+<li><a href="#vj-framework">VJ Framework</a>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#detection-pipeline">Detection pipeline</a></li>
+<li><a href="#training-pipeline">Training pipeline</a></li>
+</ul>
+</li>
+<li><a href="#feature">Feature</a></li>
+<li><a href="#%E7%89%B9%E5%BE%81%E7%A7%AF%E5%88%86%E5%9B%BE%E5%8A%A0%E9%80%9F%E8%AE%A1%E7%AE%97haar%E7%89%B9%E5%BE%81">特征积分图加速计算Haar特征</a></li>
 </ul>
 </li>
 <li><a href="#reference">Reference</a></li>
 </ul>
-<h3 id="Linux的pwd和-PWD">Linux的pwd和$PWD</h3>
+<h3 id="VJ-Framework">VJ Framework</h3>
+<h4 id="Overview">Overview</h4>
+<p>VJ Detector全称为: Viola-Joines Detector, 是早期实时人脸检测的一种方法, 其主要的贡献有以下几个方面:</p>
 <ul>
-<li>Linux中的pwd(<strong>Print Working Directory</strong>)表示: <code>当前工作目录</code>的完整路径</li>
+<li>Feature: <strong>Haar-based</strong> feature</li>
+<li>Learning algorithm: <strong>AdaBoost</strong></li>
+<li><strong>Attentional Cascade</strong></li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">pwd</span></span><br><span class="line">/home</span><br></pre></td></tr></table></figure>
-<p>在删除文件夹里的所有内容之前, 建议<code>pwd</code>查看一下当前的工作路径, 再执行<code>rm -rf *</code></p>
+<h4 id="Detection-pipeline">Detection pipeline</h4>
+<p>对检测的流程作大致的梳理: 输入一张图片, 输出一系列框, 选中图片中所有被检测到的目标</p>
 <ul>
-<li>Linux中的<code>$PWD</code>是环境变量, <code>echo $PWD</code>与<code>pwd</code>输出的内容一样</li>
+<li>图片预处理:
+<ul>
+<li>降采样: 针对比较大的原图, 进行Resize操作, (1000 * 1000) 的图Resize到 (500 * 500)</li>
+<li>像素 intensity 压缩: 针对3通道RGB图片, <strong>压缩为1通道</strong></li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="variable">$PWD</span></span><br><span class="line">/home</span><br></pre></td></tr></table></figure>
-<h3 id="cd-PWD的神奇使用"><code>cd $PWD</code>的神奇使用</h3>
-<p>假设你同时开启了两个linux终端, 并且到了同一个工作路径下, 这个工作路径下有一个<code>test.txt</code>的文件:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 终端1</span></span><br><span class="line"><span class="built_in">cd</span> <span class="built_in">test</span>/</span><br><span class="line">ls</span><br><span class="line">&gt; test.txt</span><br></pre></td></tr></table></figure>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 终端2</span></span><br><span class="line"><span class="built_in">cd</span> <span class="built_in">test</span>/</span><br></pre></td></tr></table></figure>
-<p>然后你在终端1中删除了test文件夹</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd ..</span><br><span class="line">rm -rf test/</span><br></pre></td></tr></table></figure>
-<p>然后重建一个<code>test</code>文件夹与<code>test.txt</code>文件后, 在终端2上执行<code>ls</code>命令, 你会发现这个文件夹下没有任何内容</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 终端2</span></span><br><span class="line">ls</span><br><span class="line"><span class="comment"># 没有任何输出</span></span><br></pre></td></tr></table></figure>
-<p>但是<code>cd $PWD</code>之后, 就会有显示了</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="variable">$PWD</span></span><br><span class="line">ls</span><br><span class="line">&gt; test.txt</span><br></pre></td></tr></table></figure>
+</li>
+<li>特征预处理:
+<ul>
+<li>计算出待检测图片的 <strong>Integral Image</strong>, 极大的加速检测效率</li>
+</ul>
+</li>
+<li>滑窗检测:
+<ul>
+<li>首先以基础检测尺寸 (训练的时候用24*24) 在待检测图片上逐次滑过所有位置 (同时沿X和Y轴), 在所有窗口上判断是否为目标, 并且会<strong>逐渐放大检测窗口尺寸</strong> (比如每次扩大1.5倍) 完成<strong>各个尺寸下</strong>的图片检测. 滑窗方法把检测问题转换为了<strong>二分类问题</strong>(判断窗口里是否有物体), 虽然极大简化了问题, 但是需要识别的窗口数量巨大</li>
+</ul>
+</li>
+<li>图片检测:
+<ul>
+<li>滑窗的过程中对每个窗口都需要检测, 可以利用 Attentional Cascade 结构加速检测流程, 对于明显不是检测的窗口立即拒绝, 而对于很像存在目标的窗口逐渐地使用更多计算去判断, 并且检测过程中用到的特征是已经计算并存储好的一个中间特征(Integral Image), 利用<strong>积分图像</strong>方法, 在后续会介绍, 所以可以对特征进行快速计算, 并且 Cascade 基础是 <strong>AdaBoost</strong>，而 AdaBoost 基础是 <strong>Decision Stump</strong>，所以执行效率非常高</li>
+</ul>
+</li>
+<li>检测结果合并
+<ul>
+<li>所有 positive 检测窗口进行合并</li>
+</ul>
+</li>
+</ul>
+<h4 id="Training-pipeline">Training pipeline</h4>
+<p>基于Adaboost的Cascade结构模型: 训练目标位输入一张图片, 确认这个图片是否是所检测的目标, 简单转换为二分类问题</p>
+<ul>
+<li>确认检测窗口尺寸: 原文 24 * 24, 这个尺寸也是后续滑窗检测的基础目标窗口 size, 所以训练的时候也要用这个size</li>
+<li>正样本: 数千张到万张标准size的目标物体小图</li>
+<li>负样本: 各种风景图中切出来的小图</li>
+<li>Cascade 训练: 逐层训练出 Cascade 结构, 每层是 AdaBoost: 每一层训练结束都要为下一层准备出当前结构下无法区分的负样本</li>
+<li>输出 Cascade 模型的所有参数, 供检测流程直接使用</li>
+</ul>
+<h3 id="Feature">Feature</h3>
+<p>特征提取使用了Haar特征: 因为只使用24*24共576个像素点是不够的, 利用haar可以提取到近乎162336个特征, 可以充分表达这张图片上的完整信息, haar特征是用不同的模板, 如下图所示:</p>
+<img src="/2022/03/24/object-detection-20years-1/haar.png" class>
+<p>特征值的计算为: 黑色区域内的<strong>像素值之和</strong> <strong>减去</strong> 白色区域内的<strong>像素值之和</strong>, 可以有效挖掘出一些边缘特征等</p>
+<p>大部分的Haar特征是没有意义的, 但是AdaBoost可以将少数有效的特征挖掘出来, 如下图所示:</p>
+<img src="/2022/03/24/object-detection-20years-1/haar_adaboost.png" class>
+<p>模型通过眼睛这一位置的<strong>显著对比</strong>, 来判断是否为人脸</p>
+<p>Haar特征同时具备 <strong>缩放不变形 (scaling invariability)</strong>, 意味着当检测窗口放大的时候, Haar模板对应的黑白区域可以按照一致的比例扩大, 所以Haar特征的意义不变. 因为在实际的检测当中, 不仅要对训练时使用的 24 * 24 的size进行检测, 还要对 24 * 24, 48 * 48, 96 * 96等不同size进行检测, 只需要对Haar的窗口等比例放大, 就可以<strong>近似表达出类似的特征提取效果</strong></p>
+<h3 id="特征积分图加速计算Haar特征">特征积分图加速计算Haar特征</h3>
+<p>特征积分图由待检测的图片生成, 大小与原待检测的图片一致, 但是其中每个点的值为<strong>该点与左上角的点围成的矩形里的值的和</strong></p>
+<img src="/2022/03/24/object-detection-20years-1/integral_image_1.png" class>
+<p>使用积分图, 计算任意大小rectangle范围内的像素和变得十分简单, 举例如下:</p>
+<img src="/2022/03/24/object-detection-20years-1/integral_image_2.png" class>
+<p>我需要计算<strong>D区域内</strong>的像素和, 则可以用 <strong>(4 - 2 - 3 + 1)</strong>, 4点的值减去2和3点的值加上1点的值</p>
+<p>利用积分图的特点, 可以<strong>加速计算Haar特征</strong>:</p>
+<img src="/2022/03/24/object-detection-20years-1/intergral_image_3.png" class>
+<p>例如要计算B和A之间的Haar特征, 则可以用以下计算方式</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="number">4</span> - <span class="number">3</span> - <span class="number">2</span> + <span class="number">1</span>) - (<span class="number">6</span> - <span class="number">5</span> - <span class="number">4</span> + <span class="number">3</span>)</span><br></pre></td></tr></table></figure>
 <h2 id="Reference">Reference</h2>
 <ul>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/31096682">pwd命令</a></li>
-<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=7tSVb0d0fyA">YouTube: why did I run “cd $PWD”</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/38056144">人脸 Haar 特征快速检测及其特征计算</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/Cdd2xd/article/details/77343406">VJ框架 与 人脸检测/物体检测 详解</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/carson2005/article/details/8094966">积分图理解</a></li>
 </ul>
 
     </div>
@@ -297,7 +350,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Linux/" rel="tag"># Linux</a>
+              <a href="/tags/Object-Detection/" rel="tag"># Object Detection</a>
           </div>
 
         
@@ -306,13 +359,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/02/12/mmcv-registry/" rel="prev" title="MMCV (1): Registry">
-      <i class="fa fa-chevron-left"></i> MMCV (1): Registry
+    <a href="/2022/03/07/SSLearning-1/" rel="prev" title="Self-Supervised Learning(1): 自监督学习入门">
+      <i class="fa fa-chevron-left"></i> Self-Supervised Learning(1): 自监督学习入门
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2022/02/15/libai-env/" rel="next" title="LiBai Learning (0): Distributed Environment">
-      LiBai Learning (0): Distributed Environment <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -371,7 +421,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux%E7%9A%84pwd%E5%92%8C-PWD"><span class="nav-number">1.1.</span> <span class="nav-text">Linux的pwd和$PWD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cd-PWD%E7%9A%84%E7%A5%9E%E5%A5%87%E4%BD%BF%E7%94%A8"><span class="nav-number">1.2.</span> <span class="nav-text">cd $PWD的神奇使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#VJ-Framework"><span class="nav-number">1.1.</span> <span class="nav-text">VJ Framework</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Overview"><span class="nav-number">1.1.1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Detection-pipeline"><span class="nav-number">1.1.2.</span> <span class="nav-text">Detection pipeline</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Training-pipeline"><span class="nav-number">1.1.3.</span> <span class="nav-text">Training pipeline</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Feature"><span class="nav-number">1.2.</span> <span class="nav-text">Feature</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E7%A7%AF%E5%88%86%E5%9B%BE%E5%8A%A0%E9%80%9F%E8%AE%A1%E7%AE%97Haar%E7%89%B9%E5%BE%81"><span class="nav-number">1.3.</span> <span class="nav-text">特征积分图加速计算Haar特征</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
