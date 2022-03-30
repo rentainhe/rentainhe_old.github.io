@@ -20,20 +20,23 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="记录一下Python中如果报错找不到Module时的解决方案">
+  <meta name="description" content="本文记录了深度学习中weight decay的理解与应用~">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python报错找不到Module的解决方案">
-<meta property="og:url" content="http://example.com/2022/01/31/python-debug/index.html">
+<meta property="og:title" content="如何理解weight decay?">
+<meta property="og:url" content="http://example.com/2022/03/27/weight-decay/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="记录一下Python中如果报错找不到Module时的解决方案">
+<meta property="og:description" content="本文记录了深度学习中weight decay的理解与应用~">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2022-01-31T04:31:01.000Z">
-<meta property="article:modified_time" content="2022-01-31T04:59:54.994Z">
+<meta property="og:image" content="http://example.com/2022/03/27/weight-decay/l1_norm_and_l2_norm.png">
+<meta property="og:image" content="http://example.com/2022/03/27/weight-decay/l1_l2_norm_bp.png">
+<meta property="article:published_time" content="2022-03-27T08:01:49.000Z">
+<meta property="article:modified_time" content="2022-03-27T08:24:46.039Z">
 <meta property="article:author" content="Ren Tianhe">
-<meta property="article:tag" content="debug">
+<meta property="article:tag" content="Deep Learning Basics">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/03/27/weight-decay/l1_norm_and_l2_norm.png">
 
-<link rel="canonical" href="http://example.com/2022/01/31/python-debug/">
+<link rel="canonical" href="http://example.com/2022/03/27/weight-decay/">
 
 
 <script id="page-configurations">
@@ -46,7 +49,7 @@
   };
 </script>
 
-  <title>Python报错找不到Module的解决方案 | RenTianhe's Blog</title>
+  <title>如何理解weight decay? | RenTianhe's Blog</title>
   
 
 
@@ -177,7 +180,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/31/python-debug/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/27/weight-decay/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -190,7 +193,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Python报错找不到Module的解决方案
+          如何理解weight decay?
         </h1>
 
         <div class="post-meta">
@@ -201,7 +204,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2022-01-31 12:31:01 / Modified: 12:59:54" itemprop="dateCreated datePublished" datetime="2022-01-31T12:31:01+08:00">2022-01-31</time>
+              <time title="Created: 2022-03-27 16:01:49 / Modified: 16:24:46" itemprop="dateCreated datePublished" datetime="2022-03-27T16:01:49+08:00">2022-03-27</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -209,7 +212,7 @@
               </span>
               <span class="post-meta-item-text">In</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Debug-Record/" itemprop="url" rel="index"><span itemprop="name">Debug Record</span></a>
+                  <a href="/categories/Deep-Learning-Basics/" itemprop="url" rel="index"><span itemprop="name">Deep Learning Basics</span></a>
                 </span>
             </span>
 
@@ -226,14 +229,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.7k</span>
+              <span>460</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>2 mins.</span>
+              <span>1 mins.</span>
             </span>
 
         </div>
@@ -245,40 +248,37 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>记录一下Python中如果报错找不到Module时的解决方案</p>
+        <p>本文记录了深度学习中weight decay的理解与应用~</p>
 <span id="more"></span>
-<h2 id="python的工作路径">python的工作路径</h2>
+<h2 id="Contents">Contents</h2>
 <ul>
-<li>获取python进程的工作路径, 进程的工作路径取决于在哪里执行这个文件, 如果是<code>python test.py</code>, 那么工作路径就是<code>./</code>, 如果是<code>python test/test.py</code>, 那么工作路径就是<code>/test</code></li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="built_in">print</span>(os.getcwd()) <span class="comment"># current work dir</span></span><br></pre></td></tr></table></figure>
+<li><a href="#contents">Contents</a>
 <ul>
-<li>修改工作路径</li>
+<li><a href="#l1-norm-and-l2-norm">L1 Norm and L2 Norm</a></li>
 </ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line">os.chdir(<span class="string">&quot;/home&quot;</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h3 id="L1-Norm-and-L2-Norm">L1 Norm and L2 Norm</h3>
+<p>L1 regularization和L2 regularization是机器学习中为了防止overfitting的正则化手段, 比较简单的描述就是, 将<strong>模型参数的值</strong>也作为最终需要优化的函数的一项, 在优化的过程中, 可以稀疏权重, 有助于模型的generalization. L1 norm和L2 norm作为正则项加入到Loss函数中的例子:</p>
+<img src="/2022/03/27/weight-decay/l1_norm_and_l2_norm.png" class>
+<p>二者的主要区别为:</p>
 <ul>
-<li>工作路径主要影响程序里使用的相对路径</li>
+<li>L2计算起来更加方便</li>
+<li>L1<strong>输出稀疏</strong>, 会把不重要的特征置为0</li>
+<li>L2有<strong>唯一解</strong>, L1则没有</li>
 </ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 例如在保存文件时</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="built_in">open</span>(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;w&quot;</span>).close() <span class="comment"># 创建一个test.txt文件</span></span><br><span class="line">os.chdir(<span class="string">&quot;/home&quot;</span>)</span><br><span class="line"><span class="built_in">open</span>(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;w&quot;</span>).close() <span class="comment"># 在/home下创建一个test.txt</span></span><br></pre></td></tr></table></figure>
-<h2 id="python报错找不到Module的解决方案">python报错找不到Module的解决方案</h2>
-<h4 id="问题描述">问题描述</h4>
-<p>假设我们的目录结构为</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">|--vision</span><br><span class="line">    |--flowvision</span><br><span class="line">        |--models</span><br><span class="line">            |--convnext.py</span><br><span class="line">|--project</span><br><span class="line">    |--benchmark</span><br><span class="line">        |--classification</span><br><span class="line">            |--debug.py</span><br></pre></td></tr></table></figure>
-<p>假设在<code>debug.py</code>中我们使用了这样的一段代码, 并且我们在<code>project/benchmark/classification/</code>下执行<code>python debug.py</code></p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> flowvision</span><br><span class="line">model = flowvision.models.convnext_tiny_224()</span><br><span class="line"><span class="built_in">print</span>(model)</span><br></pre></td></tr></table></figure>
-<p>报错<code>ModuleNotFoundError: No module named 'flowvision'</code></p>
-<h4 id="解决方案">解决方案</h4>
+<p>在梯度优化的过程中, L1相较于L2梯度下降更快:</p>
+<img src="/2022/03/27/weight-decay/l1_l2_norm_bp.png" class>
 <ul>
-<li>首先使用<code>sys.path</code>查看当前执行的代码里，可以找到的module有哪些</li>
+<li>在梯度更新的时候L1的大小为多少, 梯度大小均为1或者-1, 意味着Loss可以稳定向0下降, 也造成了L1的稀疏特性</li>
+<li>L2的梯度下降, 越接近0的时候梯度越小</li>
 </ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="built_in">print</span>(sys.path)</span><br></pre></td></tr></table></figure>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[&#x27;/home/rentianhe/code/OneFlow-Models/vision/projects/benchmark/classification&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python37.zip&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7/lib-dynload&#x27;, &#x27;/home/rentianhe/anaconda3/envs/oneflow-dev-gcc7-v2/lib/python3.7/site-packages&#x27;, &#x27;/home/rentianhe/code/OneFlow-Models/libai&#x27;]</span><br></pre></td></tr></table></figure>
-<p>我们得到了当前执行的代码里可用的module，可以看到，第一个是<code>'/home/rentianhe/code/OneFlow-Models/vision/projects/benchmark/classification'</code>，表示我们当前执行的路径下，没有vision的路径，所以就无法找到flowvision这个module</p>
+<h2 id="Reference">Reference</h2>
 <ul>
-<li>手动将vision这个module添加到<code>sys.path</code>中</li>
+<li><a target="_blank" rel="noopener" href="https://towardsdatascience.com/visualizing-regularization-and-the-l1-and-l2-norms-d962aa769932">Visualizing regularization and the L1 and L2 norms</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/26485586/answer/616029832">L1正则和L2正则的特点和优势</a></li>
 </ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">sys.path.append(<span class="string">&quot;/home/rentianhe/code/OneFlow-Models/vision/&quot;</span>)</span><br><span class="line"><span class="keyword">import</span> flowvision</span><br><span class="line">model = flowvision.models.convnext_tiny_224()</span><br></pre></td></tr></table></figure>
-<p>再次执行，发现成功了，这时候我们已经把vision这个module添加到了sys.path中，所以可以找到vision下的flowvision模块</p>
 
     </div>
 
@@ -288,7 +288,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/debug/" rel="tag"># debug</a>
+              <a href="/tags/Deep-Learning-Basics/" rel="tag"># Deep Learning Basics</a>
           </div>
 
         
@@ -297,13 +297,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/01/31/Advanced_Python_1/" rel="prev" title="Advanced Python Learning (1): List, Tuple, Dict and Set">
-      <i class="fa fa-chevron-left"></i> Advanced Python Learning (1): List, Tuple, Dict and Set
+    <a href="/2022/03/24/object-detection-20years-1/" rel="prev" title="Object Detection (1): VJ Detector与积分图像">
+      <i class="fa fa-chevron-left"></i> Object Detection (1): VJ Detector与积分图像
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2022/02/03/Advanced_Python_2/" rel="next" title="Advanced Python Learning (2): Strings and Collections">
-      Advanced Python Learning (2): Strings and Collections <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -362,7 +359,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#python%E7%9A%84%E5%B7%A5%E4%BD%9C%E8%B7%AF%E5%BE%84"><span class="nav-number">1.</span> <span class="nav-text">python的工作路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python%E6%8A%A5%E9%94%99%E6%89%BE%E4%B8%8D%E5%88%B0Module%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">2.</span> <span class="nav-text">python报错找不到Module的解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">2.0.1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">2.0.2.</span> <span class="nav-text">解决方案</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#L1-Norm-and-L2-Norm"><span class="nav-number">1.1.</span> <span class="nav-text">L1 Norm and L2 Norm</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
