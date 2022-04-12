@@ -22,13 +22,13 @@
 
   <meta name="description" content="这里学习一下Python中的yield关键字用法以及generator生成器相关的知识">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Advanced Python Learning (8): Yield and Generator">
+<meta property="og:title" content="Advanced Python Learning (9): Yield and Generator">
 <meta property="og:url" content="http://example.com/2022/02/08/generator-and-yield/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
 <meta property="og:description" content="这里学习一下Python中的yield关键字用法以及generator生成器相关的知识">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-02-07T16:39:39.000Z">
-<meta property="article:modified_time" content="2022-02-07T17:15:36.808Z">
+<meta property="article:modified_time" content="2022-04-12T13:15:37.905Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="Python">
 <meta name="twitter:card" content="summary">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>Advanced Python Learning (8): Yield and Generator | RenTianhe's Blog</title>
+  <title>Advanced Python Learning (9): Yield and Generator | RenTianhe's Blog</title>
   
 
 
@@ -126,17 +126,17 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">14</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">16</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">30</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">34</span></a>
 
   </li>
         <li class="menu-item menu-item-projects">
@@ -190,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Advanced Python Learning (8): Yield and Generator
+          Advanced Python Learning (9): Yield and Generator
         </h1>
 
         <div class="post-meta">
@@ -199,10 +199,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2022-02-08 00:39:39 / Modified: 01:15:36" itemprop="dateCreated datePublished" datetime="2022-02-08T00:39:39+08:00">2022-02-08</time>
+              <time title="Created: 2022-02-08 00:39:39" itemprop="dateCreated datePublished" datetime="2022-02-08T00:39:39+08:00">2022-02-08</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-04-12 21:15:37" itemprop="dateModified" datetime="2022-04-12T21:15:37+08:00">2022-04-12</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -247,7 +253,7 @@
       
         <p>这里学习一下Python中的yield关键字用法以及generator生成器相关的知识</p>
 <span id="more"></span>
-<h2 id="Contents-4">Contents</h2>
+<h2 id="Contents">Contents</h2>
 <ul>
 <li><a href="#contents">Contents</a>
 <ul>
@@ -273,7 +279,7 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fibonacii</span>(<span class="params">limit</span>):</span></span><br><span class="line">    <span class="comment"># 0 1 1 2 3 5 8 13 21 ...</span></span><br><span class="line">    a, b = <span class="number">0</span>, <span class="number">1</span></span><br><span class="line">    <span class="keyword">while</span> a &lt; limit:</span><br><span class="line">        <span class="keyword">yield</span> a</span><br><span class="line">        a, b = b, a + b</span><br><span class="line"></span><br><span class="line">fib = fibonacii(<span class="number">30</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> fib:</span><br><span class="line">    <span class="built_in">print</span>(i)</span><br></pre></td></tr></table></figure>
 <h3 id="生成器表达式">生成器表达式</h3>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成器表达式用小括号, 并非真正生成一个列表, 而是生成一个generator对象</span></span><br><span class="line">mygenerator = (i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>) <span class="keyword">if</span> i % <span class="number">2</span> == <span class="number">0</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> mygenerator:</span><br><span class="line">    <span class="built_in">print</span>(i)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">0</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">6</span></span><br><span class="line"><span class="number">8</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 这个为列表表达式</span></span><br><span class="line">mylist = [i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>) <span class="keyword">if</span> i % <span class="number">2</span> == <span class="number">0</span>]</span><br><span class="line"><span class="built_in">print</span>(mylist)  <span class="comment"># [0, 2, 4, 6, 8]</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(mygenerator))  <span class="comment"># [0, 2, 4, 6, 8]</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(sys.getsizeof(mygenerator))  <span class="comment"># 88</span></span><br><span class="line"><span class="built_in">print</span>(sys.getsizeof(mylist))  <span class="comment"># 128</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 当数据增多的时候</span></span><br><span class="line">mygenerator = (i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1000</span>) <span class="keyword">if</span> i % <span class="number">2</span> == <span class="number">0</span>)</span><br><span class="line">mylist = [i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1000</span>) <span class="keyword">if</span> i % <span class="number">2</span> == <span class="number">0</span>]</span><br><span class="line"><span class="built_in">print</span>(sys.getsizeof(mygenerator))  <span class="comment"># 88</span></span><br><span class="line"><span class="built_in">print</span>(sys.getsizeof(mylist))  <span class="comment"># 4272</span></span><br></pre></td></tr></table></figure>
-<h2 id="Reference-7">Reference</h2>
+<h2 id="Reference">Reference</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=4CxB2V2lERs&amp;list=PLqnslRFeH2UqLwzS0AwKDKLrpYBKzLBy2&amp;index=14">YouTube Video</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/xiao-yu-/p/12722645.html">Python列表表达式</a></li>
@@ -298,8 +304,8 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/02/06/iterators-vs-iterables/" rel="prev" title="Advanced Python Learning (7): iterators vs iterables">
-      <i class="fa fa-chevron-left"></i> Advanced Python Learning (7): iterators vs iterables
+    <a href="/2022/02/06/iterators-vs-iterables/" rel="prev" title="Advanced Python Learning (8): iterators vs iterables">
+      <i class="fa fa-chevron-left"></i> Advanced Python Learning (8): iterators vs iterables
     </a></div>
       <div class="post-nav-item">
     <a href="/2022/02/10/oneflow-sbp/" rel="next" title="OneFlow Learning (1): SBP Signature, Placement and Local-Global">
@@ -363,7 +369,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-4"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Generator%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%92%8C%E7%94%A8%E6%B3%95"><span class="nav-number">1.1.</span> <span class="nav-text">Generator基本概念和用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3Generator%E7%9A%84%E8%BF%90%E8%A1%8C"><span class="nav-number">1.2.</span> <span class="nav-text">深入了解Generator的运行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E5%99%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-number">1.3.</span> <span class="nav-text">生成器表达式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference-7"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Generator%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5%E5%92%8C%E7%94%A8%E6%B3%95"><span class="nav-number">1.1.</span> <span class="nav-text">Generator基本概念和用法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5%E4%BA%86%E8%A7%A3Generator%E7%9A%84%E8%BF%90%E8%A1%8C"><span class="nav-number">1.2.</span> <span class="nav-text">深入了解Generator的运行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E5%99%A8%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-number">1.3.</span> <span class="nav-text">生成器表达式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -377,20 +383,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-count">34</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-count">16</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-count">15</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -438,13 +444,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">86k</span>
+    <span title="Symbols count total">94k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">1:18</span>
+    <span title="Reading time total">1:25</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
