@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文介绍了Model EMA的原理及使用方法~">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Model EMA在深度学习中的使用">
+<meta property="og:url" content="http://example.com/2022/05/08/model-ema/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文介绍了Model EMA的原理及使用方法~">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-05-08T11:43:33.000Z">
+<meta property="article:modified_time" content="2022-05-08T12:42:38.991Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Deep Learning Basics">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/05/08/model-ema/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Model EMA在深度学习中的使用 | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">40</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/08/model-ema/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Model EMA在深度学习中的使用
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-05-08 19:43:33 / Modified: 20:42:38" itemprop="dateCreated datePublished" datetime="2022-05-08T19:43:33+08:00">2022-05-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Deep-Learning-Basics/" itemprop="url" rel="index"><span itemprop="name">Deep Learning Basics</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>2.3k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>2 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文介绍了<code>Model EMA</code>的原理及使用方法~</p>
+<span id="more"></span>
+<h2 id="Contents">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#exponential-moving-average">Exponential Moving Average</a></li>
+<li><a href="#why-ema-works">Why EMA Works?</a></li>
+<li><a href="#pytorch-ema">Pytorch EMA</a></li>
+</ul>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h3 id="Exponential-Moving-Average">Exponential Moving Average</h3>
+<p>指数平均移动 (Exponential Moving Average) 是一种给予<strong>近期数据</strong>更高权重的平均方法:</p>
+<p>假设有 n 个数据: $$ [\theta_1, \theta_2, …, \theta_n ] $$</p>
+<ul>
+<li>
+<p>普通的平均数为: $$ \bar{\theta} = {1 \over n} \displaystyle\sum_{i=1}^n \theta_i $$</p>
+</li>
+<li>
+<p>EMA的平均结果可以表示为: $$ v_t = \beta \cdot v_{t-1} + (1 - \beta) \cdot \theta_{t} $$</p>
+</li>
+</ul>
+<p>表示第<code>t</code>时刻的平均结果是前<code>t-1</code>时刻的滑动平均结果与当前时刻的值的加权</p>
+<h3 id="Why-EMA-Works">Why EMA Works?</h3>
+<p>在深度学习中EMA的使用是: 在<code>t</code>时刻会维护两个权重, 一个模型权重<code>weights</code>, 一个影子权重<code>shadow weights</code>, 在梯度下降的过程中, 会一直维护<code>shadow weights</code>, 这个权重不会参与训练, 但是会用<code>EMA</code>的方式去更新, 其基本的假设是: <strong>模型权重在最后的<code>n</code>步内, 会在最优点之间扰动, 所以取最后n步的平均, 可以使得模型变得更加鲁棒</strong>.</p>
+<h3 id="Pytorch-EMA">Pytorch EMA</h3>
+<p>这是一个Pytorch版本的EMA实现:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EMA</span>(<span class="params"><span class="built_in">object</span></span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, model, alpha, buffer_ema=<span class="literal">True</span></span>):</span></span><br><span class="line">        self.step = <span class="number">0</span></span><br><span class="line">        self.model = model</span><br><span class="line">        self.alpha = alpha</span><br><span class="line">        self.buffer_ema = buffer_ema</span><br><span class="line">        self.shadow = self.get_model_state()</span><br><span class="line">        self.backup = &#123;&#125;</span><br><span class="line">        self.param_keys = [k <span class="keyword">for</span> k, _ <span class="keyword">in</span> self.model.named_parameters()]</span><br><span class="line">        self.buffer_keys = [k <span class="keyword">for</span> k, _ <span class="keyword">in</span> self.model.named_buffers()]</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">update_params</span>(<span class="params">self</span>):</span></span><br><span class="line">        decay = <span class="built_in">min</span>(self.alpha, (self.step + <span class="number">1</span>) / (self.step + <span class="number">10</span>))</span><br><span class="line">        state = self.model.state_dict()</span><br><span class="line">        <span class="comment"># 使用EMA方法更新shadow weights</span></span><br><span class="line">        <span class="keyword">for</span> name <span class="keyword">in</span> self.param_keys:</span><br><span class="line">            self.shadow[name].copy_(</span><br><span class="line">                decay * self.shadow[name]</span><br><span class="line">                + (<span class="number">1</span> - decay) * state[name]</span><br><span class="line">            )</span><br><span class="line">        <span class="comment"># 是否需要使用EMA更新shadow weights中的buffer中的参数</span></span><br><span class="line">        <span class="keyword">for</span> name <span class="keyword">in</span> self.buffer_keys:</span><br><span class="line">            <span class="keyword">if</span> self.buffer_ema:</span><br><span class="line">                self.shadow[name].copy_(</span><br><span class="line">                    decay * self.shadow[name]</span><br><span class="line">                    + (<span class="number">1</span> - decay) * state[name]</span><br><span class="line">                )</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                self.shadow[name].copy_(state[name])</span><br><span class="line">        self.step += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">apply_shadow</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="comment"># apply_shadow的功能是将维护的shadow_weights赋给当前的模型</span></span><br><span class="line">        <span class="comment"># 首先保存一份当前的模型权重</span></span><br><span class="line">        self.backup = self.get_model_state()</span><br><span class="line">        <span class="comment"># 再将维护的shadow_weights给复制到当前模型中</span></span><br><span class="line">        self.model.load_state_dict(self.shadow)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">restore</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="comment"># 在使用shadow_weights进行测试后, 调用restore方法恢复之前的模型权重继续进行训练</span></span><br><span class="line">        self.model.load_state_dict(self.backup)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_model_state</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="comment"># 得到当前的模型权重</span></span><br><span class="line">        <span class="keyword">return</span> &#123;</span><br><span class="line">            k: v.clone().detach()</span><br><span class="line">            <span class="keyword">for</span> k, v <span class="keyword">in</span> self.model.state_dict().items()</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p>其基本的使用方法如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">model = resnet()</span><br><span class="line">model.train()</span><br><span class="line"><span class="comment"># 创造EMA</span></span><br><span class="line">ema = EMA(model, <span class="number">0.9999</span>)</span><br><span class="line">....</span><br><span class="line"><span class="keyword">for</span> img, lb <span class="keyword">in</span> dataloader:</span><br><span class="line">    loss = ...</span><br><span class="line">    loss.backward()</span><br><span class="line">    optim.step()</span><br><span class="line">    <span class="comment"># 更新EMA中的参数</span></span><br><span class="line">    ema.update_params() <span class="comment"># apply ema</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 正常使用原始权重进行测试</span></span><br><span class="line">evaluate(model)  <span class="comment"># evaluate with original model as usual</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用EMA的影子权重进行测试</span></span><br><span class="line">ema.apply_shadow() <span class="comment"># copy ema status to the model</span></span><br><span class="line">evaluate(model) <span class="comment"># evaluate the model with ema paramters</span></span><br><span class="line">ema.restore() <span class="comment"># resume the model parameters</span></span><br></pre></td></tr></table></figure>
+<h2 id="Reference">Reference</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://codeantenna.com/a/NdB1wugD1B">PyTorch指数移动平均(EMA)手册</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/68748778">【炼丹技巧】指数移动平均（EMA）的原理及PyTorch实现</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Deep-Learning-Basics/" rel="tag"># Deep Learning Basics</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/04/detection-metrics/" rel="prev" title="Object Detection (3): Object Detection Metrics">
+      <i class="fa fa-chevron-left"></i> Object Detection (3): Object Detection Metrics
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Exponential-Moving-Average"><span class="nav-number">1.1.</span> <span class="nav-text">Exponential Moving Average</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Why-EMA-Works"><span class="nav-number">1.2.</span> <span class="nav-text">Why EMA Works?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pytorch-EMA"><span class="nav-number">1.3.</span> <span class="nav-text">Pytorch EMA</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">107k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">1:37</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
