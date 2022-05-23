@@ -22,13 +22,13 @@
 
   <meta name="description" content="本文介绍了目标检测中Anchor Box相关的内容~">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Object Detection (2): Anchor Box">
+<meta property="og:title" content="Object Detection (2): Anchor Box (未完结)">
 <meta property="og:url" content="http://example.com/2022/05/03/anchor-box/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
 <meta property="og:description" content="本文介绍了目标检测中Anchor Box相关的内容~">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-05-03T10:21:20.000Z">
-<meta property="article:modified_time" content="2022-05-03T10:38:38.389Z">
+<meta property="article:modified_time" content="2022-05-13T03:07:20.824Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="Object Detection">
 <meta name="twitter:card" content="summary">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>Object Detection (2): Anchor Box | RenTianhe's Blog</title>
+  <title>Object Detection (2): Anchor Box (未完结) | RenTianhe's Blog</title>
   
 
 
@@ -126,17 +126,17 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">14</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">14</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">40</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">43</span></a>
 
   </li>
         <li class="menu-item menu-item-projects">
@@ -190,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Object Detection (2): Anchor Box
+          Object Detection (2): Anchor Box (未完结)
         </h1>
 
         <div class="post-meta">
@@ -199,10 +199,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2022-05-03 18:21:20 / Modified: 18:38:38" itemprop="dateCreated datePublished" datetime="2022-05-03T18:21:20+08:00">2022-05-03</time>
+              <time title="Created: 2022-05-03 18:21:20" itemprop="dateCreated datePublished" datetime="2022-05-03T18:21:20+08:00">2022-05-03</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-05-13 11:07:20" itemprop="dateModified" datetime="2022-05-13T11:07:20+08:00">2022-05-13</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -247,7 +253,7 @@
       
         <p>本文介绍了目标检测中Anchor Box相关的内容~</p>
 <span id="more"></span>
-<h2 id="Contents-3">Contents</h2>
+<h2 id="Contents">Contents</h2>
 <ul>
 <li><a href="#contents">Contents</a>
 <ul>
@@ -345,7 +351,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-3"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Definition"><span class="nav-number">1.1.</span> <span class="nav-text">Definition</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%84%E9%80%A0Anchor-Box"><span class="nav-number">1.2.</span> <span class="nav-text">构造Anchor Box</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Definition"><span class="nav-number">1.1.</span> <span class="nav-text">Definition</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%84%E9%80%A0Anchor-Box"><span class="nav-number">1.2.</span> <span class="nav-text">构造Anchor Box</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -359,20 +365,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-count">43</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -420,13 +426,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">107k</span>
+    <span title="Symbols count total">117k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">1:37</span>
+    <span title="Reading time total">1:47</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>

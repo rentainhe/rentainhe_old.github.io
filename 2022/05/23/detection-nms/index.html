@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文介绍了目标检测中后处理NMS相关的算法思路及其实现代码~">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Object Detection (4): NMS算法详解">
+<meta property="og:url" content="http://example.com/2022/05/23/detection-nms/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文介绍了目标检测中后处理NMS相关的算法思路及其实现代码~">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-05-22T16:00:25.000Z">
+<meta property="article:modified_time" content="2022-05-23T01:15:30.556Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Object Detection">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/05/23/detection-nms/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Object Detection (4): NMS算法详解 | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">14</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">14</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">43</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/23/detection-nms/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Object Detection (4): NMS算法详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-05-23 00:00:25 / Modified: 09:15:30" itemprop="dateCreated datePublished" datetime="2022-05-23T00:00:25+08:00">2022-05-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Object-Detection/" itemprop="url" rel="index"><span itemprop="name">Object Detection</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>3.8k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>3 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文介绍了目标检测中后处理NMS相关的算法思路及其实现代码~</p>
+<span id="more"></span>
+<h2 id="Contents">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#motivation">Motivation</a></li>
+<li><a href="#nms-method">NMS Method</a></li>
+<li><a href="#nms-code">NMS Code</a></li>
+<li><a href="#%E9%83%A8%E5%88%86%E4%BB%A3%E7%A0%81%E7%9A%84%E7%90%86%E8%A7%A3">部分代码的理解</a></li>
+</ul>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h3 id="Motivation">Motivation</h3>
+<p>目标检测算法中, 在最后往往会有大量重复预测的检测框, 需要使用NMS算法对齐进行去重操作, 可以保证每个目标只保留检测效果最好的bounding box</p>
+<h3 id="NMS-Method">NMS Method</h3>
+<p>NMS的算法的核心思路非常简单:</p>
+<ul>
+<li>按照<strong>置信度</strong>进行排序, 这里置信度是指, 每个bounding box, 会给出一个置信度的预测, 表示这个Region中包含object的概率, 这个<strong>置信度往往是用于NMS后处理</strong>的, 在Yolo的Loss中会参与到最后的Loss计算, 如果一个对象的中心落在这个单元格的话, 则这个单元格的置信度的label为1, 反之为0.</li>
+<li>首先选取<strong>置信度最高</strong>的框作为第一个候选框.</li>
+<li>计算其他的框与候选框的IOU, 如果IOU高于某个阈值(这个阈值是人为指定的, <strong>当其他框与候选框的IOU大于某个阈值的时候, 这两个框大概率指向同一个object</strong>), 则将其置信度设置为0, 这些已经计算过的框不参与后续的计算.</li>
+<li>在<strong>剩余的框中</strong>寻找概率第二大的框, 将其他所有框与概率第二个的框进行类似的计算, 依次类推, 最终所有的框之间的IOU都小于阈值, 或者置信度被设置为0.</li>
+<li>所有的置信度非0的候选框是我们最终需要的检测框</li>
+</ul>
+<h3 id="NMS-Code">NMS Code</h3>
+<ul>
+<li>numpy实现版本</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># --------------------------------------------------------</span></span><br><span class="line"><span class="comment"># Fast R-CNN</span></span><br><span class="line"><span class="comment"># Copyright (c) 2015 Microsoft</span></span><br><span class="line"><span class="comment"># Licensed under The MIT License [see LICENSE for details]</span></span><br><span class="line"><span class="comment"># Written by Ross Girshick</span></span><br><span class="line"><span class="comment"># --------------------------------------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="comment"># dets: 检测的 boxes 及对应的 scores；</span></span><br><span class="line"><span class="comment"># thresh: 设定的阈值</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">nms</span>(<span class="params">dets, thresh</span>):</span></span><br><span class="line">    <span class="comment"># boxes 位置</span></span><br><span class="line">    x1 = dets[:, <span class="number">0</span>]  </span><br><span class="line">    y1 = dets[:, <span class="number">1</span>] </span><br><span class="line">    x2 = dets[:, <span class="number">2</span>]</span><br><span class="line">    y2 = dets[:, <span class="number">3</span>]</span><br><span class="line">    <span class="comment"># boxes scores</span></span><br><span class="line">	scores = dets[:, <span class="number">4</span>]</span><br><span class="line"></span><br><span class="line">    areas = (x2 - x1 + <span class="number">1</span>) * (y2 - y1 + <span class="number">1</span>) 	<span class="comment"># 各box的面积</span></span><br><span class="line">    order = scores.argsort()[::-<span class="number">1</span>] 			<span class="comment"># 分类置信度排序</span></span><br><span class="line">    keep = [] 							<span class="comment"># 记录保留下的 boxes</span></span><br><span class="line">    <span class="keyword">while</span> order.size &gt; <span class="number">0</span>:</span><br><span class="line">        i = order[<span class="number">0</span>] 				<span class="comment"># score最大的box对应的 index</span></span><br><span class="line">        keep.append(i) 			<span class="comment"># 将本轮score最大的box的index保留</span></span><br><span class="line"> </span><br><span class="line">        <span class="comment"># 计算剩余 boxes 与当前 box 的重叠程度 IoU</span></span><br><span class="line">        xx1 = np.maximum(x1[i], x1[order[<span class="number">1</span>:]])</span><br><span class="line">        yy1 = np.maximum(y1[i], y1[order[<span class="number">1</span>:]])</span><br><span class="line">        xx2 = np.minimum(x2[i], x2[order[<span class="number">1</span>:]])</span><br><span class="line">        yy2 = np.minimum(y2[i], y2[order[<span class="number">1</span>:]])</span><br><span class="line"> </span><br><span class="line">        w = np.maximum(<span class="number">0.0</span>, xx2 - xx1 + <span class="number">1</span>) <span class="comment"># IoU</span></span><br><span class="line">        h = np.maximum(<span class="number">0.0</span>, yy2 - yy1 + <span class="number">1</span>)</span><br><span class="line">        inter = w * h</span><br><span class="line">        ovr = inter / (areas[i] + areas[order[<span class="number">1</span>:]] - inter)</span><br><span class="line"> </span><br><span class="line">        <span class="comment"># 保留 IoU 小于设定阈值的 boxes</span></span><br><span class="line">        inds = np.where(ovr &lt;= thresh)[<span class="number">0</span>]</span><br><span class="line">        order = order[inds + <span class="number">1</span>]</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">return</span> keep</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Pytorch实现版本</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># NMS算法</span></span><br><span class="line"><span class="comment"># bboxes维度为[N,4]，scores维度为[N,], 均为tensor</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">nms</span>(<span class="params">self, bboxes, scores, threshold=<span class="number">0.5</span></span>):</span></span><br><span class="line">    x1 = bboxes[:,<span class="number">0</span>]</span><br><span class="line">    y1 = bboxes[:,<span class="number">1</span>]</span><br><span class="line">    x2 = bboxes[:,<span class="number">2</span>]</span><br><span class="line">    y2 = bboxes[:,<span class="number">3</span>]</span><br><span class="line">    areas = (x2-x1) * (y2-y1)   <span class="comment"># [N,] 每个bbox的面积</span></span><br><span class="line">    _, order = scores.sort(<span class="number">0</span>, descending=<span class="literal">True</span>)    <span class="comment"># 降序排列</span></span><br><span class="line"></span><br><span class="line">    keep = []</span><br><span class="line">    <span class="keyword">while</span> order.numel() &gt; <span class="number">0</span>:       <span class="comment"># torch.numel()返回张量元素个数</span></span><br><span class="line">        <span class="keyword">if</span> order.numel() == <span class="number">1</span>:     <span class="comment"># 保留框只剩一个</span></span><br><span class="line">            i = order.item()</span><br><span class="line">            keep.append(i)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            i = order[<span class="number">0</span>].item()    <span class="comment"># 保留scores最大的那个框box[i]</span></span><br><span class="line">            keep.append(i)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 计算box[i]与其余各框的IOU(思路很好)</span></span><br><span class="line">        <span class="comment"># x1[i]就是目前的order[0]</span></span><br><span class="line">        <span class="comment"># 需要计算的是 </span></span><br><span class="line">        <span class="comment"># 左上: max(x1[order[1:]], x1[i]), max(y1[order[1:]], y1[i])</span></span><br><span class="line">        <span class="comment"># 右下: min(x2[order[1:]], x2[i]), min(y2[order[1:]], y2[i])</span></span><br><span class="line">        <span class="comment"># 使用clamp就是, 和x1[i]进行比较, 小于这个的值的话就取x1[i], 很巧妙</span></span><br><span class="line">        xx1 = x1[order[<span class="number">1</span>:]].clamp(<span class="built_in">min</span>=x1[i])   <span class="comment"># [N-1,]</span></span><br><span class="line">        yy1 = y1[order[<span class="number">1</span>:]].clamp(<span class="built_in">min</span>=y1[i])</span><br><span class="line">        xx2 = x2[order[<span class="number">1</span>:]].clamp(<span class="built_in">max</span>=x2[i])</span><br><span class="line">        yy2 = y2[order[<span class="number">1</span>:]].clamp(<span class="built_in">max</span>=y2[i])</span><br><span class="line">        inter = (xx2-xx1).clamp(<span class="built_in">min</span>=<span class="number">0</span>) * (yy2-yy1).clamp(<span class="built_in">min</span>=<span class="number">0</span>)   <span class="comment"># [N-1,]</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 只有 n-1 个iou</span></span><br><span class="line">        iou = inter / (areas[i]+areas[order[<span class="number">1</span>:]]-inter)  <span class="comment"># [N-1,]</span></span><br><span class="line">        idx = (iou &lt;= threshold).nonzero().squeeze() </span><br><span class="line">        <span class="comment"># 注意此时idx为[N-1,] 而order为[N,]</span></span><br><span class="line">        <span class="comment"># 但是idx也是从0开始的, 所以这里索引和order之间差了1</span></span><br><span class="line">        <span class="comment"># 等于是将 order[1:] 整体向前移动了一位</span></span><br><span class="line">        <span class="comment"># 所以在后续计算保留的idx的时候, 需要+1, 还原索引的真实位置</span></span><br><span class="line">        <span class="keyword">if</span> idx.numel() == <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        order = order[idx+<span class="number">1</span>]  <span class="comment"># 修补索引之间的差值</span></span><br><span class="line">    <span class="keyword">return</span> torch.LongTensor(keep)   <span class="comment"># Pytorch的索引值为LongTensor</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>torch.numel()</code>: 返回一个张量中总元素的个数</li>
+<li><code>torch.clamp(min, max)</code>: 设置一个张量中值的上下限</li>
+<li><code>tensor.item()</code>: 取出tensor中元素的数字</li>
+</ul>
+<h3 id="部分代码的理解">部分代码的理解</h3>
+<ul>
+<li><code>tensor.sort()</code>: 对某个dim按照升(降)序进行排序操作, 返回排序后的tensor以及index</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"></span><br><span class="line"><span class="comment"># 随机生成一组scores</span></span><br><span class="line">x = torch.randn(<span class="number">16</span>,)</span><br><span class="line"><span class="built_in">print</span>(x)</span><br><span class="line">_, order = x.sort(<span class="number">0</span>, descending=<span class="literal">True</span>)</span><br><span class="line"><span class="built_in">print</span>(_)</span><br><span class="line"><span class="built_in">print</span>(order)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 原始的scores</span></span><br><span class="line">tensor([-<span class="number">0.0477</span>, -<span class="number">1.1231</span>, -<span class="number">1.4109</span>,  <span class="number">1.2780</span>,  <span class="number">2.2660</span>, -<span class="number">0.4092</span>,  <span class="number">0.1306</span>,  <span class="number">0.9834</span>,</span><br><span class="line">         <span class="number">0.1703</span>,  <span class="number">0.1974</span>,  <span class="number">1.5119</span>,  <span class="number">1.6965</span>, -<span class="number">0.1658</span>,  <span class="number">0.5244</span>, -<span class="number">0.6599</span>, -<span class="number">1.3878</span>])</span><br><span class="line"><span class="comment"># descending=True后从高到低排序</span></span><br><span class="line">tensor([ <span class="number">2.2660</span>,  <span class="number">1.6965</span>,  <span class="number">1.5119</span>,  <span class="number">1.2780</span>,  <span class="number">0.9834</span>,  <span class="number">0.5244</span>,  <span class="number">0.1974</span>,  <span class="number">0.1703</span>,</span><br><span class="line">         <span class="number">0.1306</span>, -<span class="number">0.0477</span>, -<span class="number">0.1658</span>, -<span class="number">0.4092</span>, -<span class="number">0.6599</span>, -<span class="number">1.1231</span>, -<span class="number">1.3878</span>, -<span class="number">1.4109</span>])</span><br><span class="line"><span class="comment"># 输出排序后每个元素对应原始序列的idx</span></span><br><span class="line">tensor([ <span class="number">4</span>, <span class="number">11</span>, <span class="number">10</span>,  <span class="number">3</span>,  <span class="number">7</span>, <span class="number">13</span>,  <span class="number">9</span>,  <span class="number">8</span>,  <span class="number">6</span>,  <span class="number">0</span>, <span class="number">12</span>,  <span class="number">5</span>, <span class="number">14</span>,  <span class="number">1</span>, <span class="number">15</span>,  <span class="number">2</span>])</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">idx = (x &lt;= <span class="number">0.5</span>)</span><br><span class="line"><span class="built_in">print</span>(idx)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 返回的是 Ture or False, 表示是否小于0.5</span></span><br><span class="line">tensor([ <span class="literal">True</span>,  <span class="literal">True</span>,  <span class="literal">True</span>,  <span class="literal">True</span>,  <span class="literal">True</span>,  <span class="literal">True</span>,  <span class="literal">True</span>, <span class="literal">False</span>,  <span class="literal">True</span>,  <span class="literal">True</span>,</span><br><span class="line">         <span class="literal">True</span>,  <span class="literal">True</span>, <span class="literal">False</span>,  <span class="literal">True</span>,  <span class="literal">True</span>,  <span class="literal">True</span>])</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>torch.nonzero()</code>: 返回所有值不为0的位置的索引</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">idx = (x &lt;= <span class="number">0.5</span>).nonzero()</span><br><span class="line"><span class="built_in">print</span>(idx)</span><br><span class="line"><span class="built_in">print</span>(idx.shape)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">tensor([[ <span class="number">0</span>],</span><br><span class="line">        [ <span class="number">1</span>],</span><br><span class="line">        [ <span class="number">2</span>],</span><br><span class="line">        [ <span class="number">4</span>],</span><br><span class="line">        [ <span class="number">7</span>],</span><br><span class="line">        [ <span class="number">8</span>],</span><br><span class="line">        [<span class="number">10</span>],</span><br><span class="line">        [<span class="number">11</span>],</span><br><span class="line">        [<span class="number">12</span>],</span><br><span class="line">        [<span class="number">14</span>]])</span><br><span class="line">torch.Size([<span class="number">10</span>, <span class="number">1</span>])</span><br></pre></td></tr></table></figure>
+<h2 id="Reference">Reference</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_21386397/article/details/106069963">目标检测之NMS详解</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/lz867422770/article/details/100019587">非极大值抑制(nms)算法详解[python]</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/54709759">NMS算法详解（附Pytorch实现代码）</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/monchin/article/details/79750216">torch.nonzero的理解</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Object-Detection/" rel="tag"># Object Detection</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/13/deformable-conv/" rel="prev" title="Deformable Convolution and Deformable Convolution V2">
+      <i class="fa fa-chevron-left"></i> Deformable Convolution and Deformable Convolution V2
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Motivation"><span class="nav-number">1.1.</span> <span class="nav-text">Motivation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NMS-Method"><span class="nav-number">1.2.</span> <span class="nav-text">NMS Method</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NMS-Code"><span class="nav-number">1.3.</span> <span class="nav-text">NMS Code</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%83%A8%E5%88%86%E4%BB%A3%E7%A0%81%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-number">1.4.</span> <span class="nav-text">部分代码的理解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">117k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">1:47</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

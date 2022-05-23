@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文介绍了detectron2中一些基本的模块, 例如CNNBasicBlock, ShapeSpec等~">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Detectron2 Learning Notes(2): Basic Layers - CNNBlock and ShapeSpec">
+<meta property="og:url" content="http://example.com/2022/05/13/detectron2-layers/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文介绍了detectron2中一些基本的模块, 例如CNNBasicBlock, ShapeSpec等~">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-05-13T03:07:48.000Z">
+<meta property="article:modified_time" content="2022-05-13T04:13:18.272Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="detectron2">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/05/13/detectron2-layers/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Detectron2 Learning Notes(2): Basic Layers - CNNBlock and ShapeSpec | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">14</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">14</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">43</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/13/detectron2-layers/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Detectron2 Learning Notes(2): Basic Layers - CNNBlock and ShapeSpec
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-05-13 11:07:48 / Modified: 12:13:18" itemprop="dateCreated datePublished" datetime="2022-05-13T11:07:48+08:00">2022-05-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/detectron2/" itemprop="url" rel="index"><span itemprop="name">detectron2</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>6.2k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文介绍了<code>detectron2</code>中一些基本的模块, 例如<code>CNNBasicBlock</code>, <code>ShapeSpec</code>等~</p>
+<span id="more"></span>
+<h2 id="Contents-2">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#shapespec">ShapeSpec</a>
+<ul>
+<li><a href="#namedtuple%E7%94%A8%E6%B3%95"><code>namedtuple</code>用法</a></li>
+<li><a href="#shapespec-usage">ShapeSpec Usage</a></li>
+</ul>
+</li>
+<li><a href="#cnnblockbase">CNNBlockBase</a></li>
+<li><a href="#conv2d">Conv2d</a></li>
+<li><a href="#depthwiseseparableconv2d">DepthwiseSeparableConv2d</a></li>
+<li><a href="#get_norm">get_norm</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="ShapeSpec">ShapeSpec</h3>
+<p><code>ShapeSpec</code>功能介绍:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">A simple structure that contains basic shape specification about a tensor.</span><br><span class="line"></span><br><span class="line">It is often used as the auxiliary inputs/outputs of models,</span><br><span class="line">to complement the lack of shape inference ability among pytorch modules.</span><br></pre></td></tr></table></figure>
+<p>其主要的功能用于, 完善Pytorch中<code>nn.Module</code>里缺少的一些基本形状参数信息, 例如<code>in_channels</code>, <code>out_channels</code>, <code>height</code>, <code>width</code>等信息</p>
+<h4 id="namedtuple用法"><code>namedtuple</code>用法</h4>
+<p>python中的<code>namedtuple</code>继承自<code>tuple</code>, 主要创建一个和tuple类似的对象, 并且具有可访问属性</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> namedtuple</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义一个namedtuple类型 User, 包含name, sex和age属性</span></span><br><span class="line">User = namedtuple(<span class="string">&#x27;User&#x27;</span>, [<span class="string">&#x27;name&#x27;</span>, <span class="string">&#x27;sex&#x27;</span>, <span class="string">&#x27;age&#x27;</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建一个 User 对象</span></span><br><span class="line">user = User(name=<span class="string">&quot;Jay&quot;</span>, sex=<span class="string">&quot;male&quot;</span>, age=<span class="number">24</span>)</span><br><span class="line"><span class="comment"># 通过List创建对象, 但必须使用 _make 方法</span></span><br><span class="line">user = User._make([<span class="string">&quot;Jay&quot;</span>, <span class="string">&quot;male&quot;</span>, <span class="number">24</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 访问对象属性:</span></span><br><span class="line"><span class="built_in">print</span>(user.name)  <span class="comment"># Jay</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新对象属性, 使用 _replace 方法</span></span><br><span class="line">user = user._replace(age=<span class="number">22</span>)</span><br><span class="line"><span class="built_in">print</span>(user.age)  <span class="comment"># 22</span></span><br></pre></td></tr></table></figure>
+<h4 id="ShapeSpec-Usage">ShapeSpec Usage</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ShapeSpec</span>(<span class="params">namedtuple(<span class="params"><span class="string">&quot;_ShapeSpec&quot;</span>, [<span class="string">&quot;channels&quot;</span>, <span class="string">&quot;height&quot;</span>, <span class="string">&quot;width&quot;</span>, <span class="string">&quot;stride&quot;</span>]</span>)</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    A simple structure that contains basic shape specification about a tensor.</span></span><br><span class="line"><span class="string">    It is often used as the auxiliary inputs/outputs of models,</span></span><br><span class="line"><span class="string">    to complement the lack of shape inference ability among pytorch modules.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Attributes:</span></span><br><span class="line"><span class="string">        channels:</span></span><br><span class="line"><span class="string">        height:</span></span><br><span class="line"><span class="string">        width:</span></span><br><span class="line"><span class="string">        stride:</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__new__</span>(<span class="params">cls, channels=<span class="literal">None</span>, height=<span class="literal">None</span>, width=<span class="literal">None</span>, stride=<span class="literal">None</span></span>):</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">super</span>().__new__(cls, channels, height, width, stride)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> detectron2.layers <span class="keyword">import</span> ShapeSpec</span><br><span class="line"></span><br><span class="line">input_shape = ShapeSpec(channels=<span class="number">512</span>, height=<span class="number">32</span>, width=<span class="number">32</span>, stride=<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(input_shape.channels)  <span class="comment"># 512</span></span><br></pre></td></tr></table></figure>
+<p>在模块里定义这个属性, 就可以手动指定一些形状信息</p>
+<h3 id="CNNBlockBase">CNNBlockBase</h3>
+<p>为基本的卷积模块定义了一个父类, 继承自<code>nn.Module</code>, 指定了基本的信息: <code>in_channels</code>, <code>out_channels</code> 以及 <code>stride</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CNNBlockBase</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    A CNN block is assumed to have input channels, output channels and a stride.</span></span><br><span class="line"><span class="string">    The input and output of `forward()` method must be NCHW tensors.</span></span><br><span class="line"><span class="string">    The method can perform arbitrary computation but must match the given</span></span><br><span class="line"><span class="string">    channels and stride specification.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Attribute:</span></span><br><span class="line"><span class="string">        in_channels (int):</span></span><br><span class="line"><span class="string">        out_channels (int):</span></span><br><span class="line"><span class="string">        stride (int):</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, in_channels, out_channels, stride</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        The `__init__` method of any subclass should also contain these arguments.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            in_channels (int):</span></span><br><span class="line"><span class="string">            out_channels (int):</span></span><br><span class="line"><span class="string">            stride (int):</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.in_channels = in_channels</span><br><span class="line">        self.out_channels = out_channels</span><br><span class="line">        self.stride = stride</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">freeze</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Make this block not trainable.</span></span><br><span class="line"><span class="string">        This method sets all parameters to `requires_grad=False`,</span></span><br><span class="line"><span class="string">        and convert all BatchNorm layers to FrozenBatchNorm</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        Returns:</span></span><br><span class="line"><span class="string">            the block itself</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">for</span> p <span class="keyword">in</span> self.parameters():</span><br><span class="line">            p.requires_grad = <span class="literal">False</span></span><br><span class="line">        FrozenBatchNorm2d.convert_frozen_batchnorm(self)</span><br><span class="line">        <span class="keyword">return</span> self</span><br></pre></td></tr></table></figure>
+<p>定义了<code>freeze</code>方法, 将所有参数的<code>requires_grad</code>设置为<code>False</code>, 并且将所有的BatchNorm2d都转换为<code>FrozenBatchNorm2d</code>, 因为在训练检测模型的时候, 通常都会使用比较小的batchsize, 这时候的BN统计量不准确, 所以经常会将BN转换为<code>FrozenBatchNorm2d</code></p>
+<h3 id="Conv2d">Conv2d</h3>
+<p>detectron2重新wrap了一层Convolution Layer, 用以支持更多功能, 主要是支持了<code>Conv - Norm - Activation</code>这个基本的操作单元, 可以额外传入<code>Norm Layer</code>以及<code>Activation Layer</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Conv2d</span>(<span class="params">torch.nn.Conv2d</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    A wrapper around :class:`torch.nn.Conv2d` to support empty inputs and more features.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, *args, **kwargs</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Extra keyword arguments supported in addition to those in `torch.nn.Conv2d`:</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            norm (nn.Module, optional): a normalization layer</span></span><br><span class="line"><span class="string">            activation (callable(Tensor) -&gt; Tensor): a callable activation function</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        It assumes that norm layer is used before activation.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        norm = kwargs.pop(<span class="string">&quot;norm&quot;</span>, <span class="literal">None</span>)</span><br><span class="line">        activation = kwargs.pop(<span class="string">&quot;activation&quot;</span>, <span class="literal">None</span>)</span><br><span class="line">        <span class="built_in">super</span>().__init__(*args, **kwargs)</span><br><span class="line"></span><br><span class="line">        self.norm = norm</span><br><span class="line">        self.activation = activation</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        x = F.conv2d(</span><br><span class="line">            x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups</span><br><span class="line">        )</span><br><span class="line">        <span class="keyword">if</span> self.norm <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            x = self.norm(x)</span><br><span class="line">        <span class="keyword">if</span> self.activation <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            x = self.activation(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<h3 id="DepthwiseSeparableConv2d">DepthwiseSeparableConv2d</h3>
+<p>深度可分离卷积: 由<code>a kxk depthwise convolution + a 1x1 convolution</code>组成</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DepthwiseSeparableConv2d</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    A kxk depthwise convolution + a 1x1 convolution.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    In :paper:`xception`, norm &amp; activation are applied on the second conv.</span></span><br><span class="line"><span class="string">    :paper:`mobilenet` uses norm &amp; activation on both convs.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">        self,</span></span></span><br><span class="line"><span class="params"><span class="function">        in_channels,</span></span></span><br><span class="line"><span class="params"><span class="function">        out_channels,</span></span></span><br><span class="line"><span class="params"><span class="function">        kernel_size=<span class="number">3</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        padding=<span class="number">1</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        dilation=<span class="number">1</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        *,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="comment"># norm1和norm2用来控制两个Conv是否需要加BN和Activation层</span></span></span></span><br><span class="line"><span class="params"><span class="function">        norm1=<span class="literal">None</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        activation1=<span class="literal">None</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        norm2=<span class="literal">None</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        activation2=<span class="literal">None</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    </span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            norm1, norm2 (str or callable): normalization for the two conv layers.</span></span><br><span class="line"><span class="string">            activation1, activation2 (callable(Tensor) -&gt; Tensor): activation</span></span><br><span class="line"><span class="string">                function for the two conv layers.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.depthwise = Conv2d(</span><br><span class="line">            in_channels,</span><br><span class="line">            in_channels,</span><br><span class="line">            kernel_size=kernel_size,</span><br><span class="line">            padding=padding,</span><br><span class="line">            dilation=dilation,</span><br><span class="line">            groups=in_channels,</span><br><span class="line">            bias=<span class="keyword">not</span> norm1,  <span class="comment"># 如果用了BN的话可以不加bias</span></span><br><span class="line">            norm=get_norm(norm1, in_channels),</span><br><span class="line">            activation=activation1,</span><br><span class="line">        )</span><br><span class="line">        self.pointwise = Conv2d(</span><br><span class="line">            in_channels,</span><br><span class="line">            out_channels,</span><br><span class="line">            kernel_size=<span class="number">1</span>,</span><br><span class="line">            bias=<span class="keyword">not</span> norm2,</span><br><span class="line">            norm=get_norm(norm2, out_channels),</span><br><span class="line">            activation=activation2,</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        <span class="comment"># default initialization</span></span><br><span class="line">        weight_init.c2_msra_fill(self.depthwise)</span><br><span class="line">        weight_init.c2_msra_fill(self.pointwise)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        <span class="comment"># depthwise -&gt; pointwise</span></span><br><span class="line">        <span class="keyword">return</span> self.pointwise(self.depthwise(x))</span><br></pre></td></tr></table></figure>
+<h3 id="get-norm">get_norm</h3>
+<p>通过传入<code>name</code>和<code>channels</code>参数来得到Normalize Layer</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_norm</span>(<span class="params">norm, out_channels</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        norm (str or callable): either one of BN, SyncBN, FrozenBN, GN;</span></span><br><span class="line"><span class="string">            or a callable that takes a channel number and returns</span></span><br><span class="line"><span class="string">            the normalization layer as a nn.Module.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        nn.Module or None: the normalization layer</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> norm <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">isinstance</span>(norm, <span class="built_in">str</span>):</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(norm) == <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line">        norm = &#123;</span><br><span class="line">            <span class="string">&quot;BN&quot;</span>: BatchNorm2d,</span><br><span class="line">            <span class="comment"># Fixed in https://github.com/pytorch/pytorch/pull/36382</span></span><br><span class="line">            <span class="string">&quot;SyncBN&quot;</span>: NaiveSyncBatchNorm <span class="keyword">if</span> env.TORCH_VERSION &lt;= (<span class="number">1</span>, <span class="number">5</span>) <span class="keyword">else</span> nn.SyncBatchNorm,</span><br><span class="line">            <span class="string">&quot;FrozenBN&quot;</span>: FrozenBatchNorm2d,</span><br><span class="line">            <span class="string">&quot;GN&quot;</span>: <span class="keyword">lambda</span> channels: nn.GroupNorm(<span class="number">32</span>, channels),</span><br><span class="line">            <span class="comment"># for debugging:</span></span><br><span class="line">            <span class="string">&quot;nnSyncBN&quot;</span>: nn.SyncBatchNorm,</span><br><span class="line">            <span class="string">&quot;naiveSyncBN&quot;</span>: NaiveSyncBatchNorm,</span><br><span class="line">            <span class="comment"># expose stats_mode N as an option to caller, required for zero-len inputs</span></span><br><span class="line">            <span class="string">&quot;naiveSyncBN_N&quot;</span>: <span class="keyword">lambda</span> channels: NaiveSyncBatchNorm(channels, stats_mode=<span class="string">&quot;N&quot;</span>),</span><br><span class="line">            <span class="string">&quot;LN&quot;</span>: <span class="keyword">lambda</span> channels: LayerNorm(channels),</span><br><span class="line">        &#125;[norm]</span><br><span class="line">    <span class="keyword">return</span> norm(out_channels)</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/detectron2/" rel="tag"># detectron2</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/08/model-ema/" rel="prev" title="Model EMA在深度学习中的使用">
+      <i class="fa fa-chevron-left"></i> Model EMA在深度学习中的使用
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/13/deformable-conv/" rel="next" title="Deformable Convolution and Deformable Convolution V2">
+      Deformable Convolution and Deformable Convolution V2 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-2"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ShapeSpec"><span class="nav-number">1.1.</span> <span class="nav-text">ShapeSpec</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#namedtuple%E7%94%A8%E6%B3%95"><span class="nav-number">1.1.1.</span> <span class="nav-text">namedtuple用法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ShapeSpec-Usage"><span class="nav-number">1.1.2.</span> <span class="nav-text">ShapeSpec Usage</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CNNBlockBase"><span class="nav-number">1.2.</span> <span class="nav-text">CNNBlockBase</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Conv2d"><span class="nav-number">1.3.</span> <span class="nav-text">Conv2d</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DepthwiseSeparableConv2d"><span class="nav-number">1.4.</span> <span class="nav-text">DepthwiseSeparableConv2d</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#get-norm"><span class="nav-number">1.5.</span> <span class="nav-text">get_norm</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">117k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">1:47</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
