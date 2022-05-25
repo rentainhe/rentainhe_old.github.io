@@ -28,7 +28,7 @@
 <meta property="og:description" content="本文主要介绍了Detectron2中的Matcher实现, Matcher的主要功能是, 为每个候选框分配label, 在anchor-based检测算法中是有很重要的用途~">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-05-25T02:41:11.000Z">
-<meta property="article:modified_time" content="2022-05-25T05:36:32.382Z">
+<meta property="article:modified_time" content="2022-05-25T07:51:48.105Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="Detectron2">
 <meta name="twitter:card" content="summary">
@@ -201,7 +201,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2022-05-25 10:41:11 / Modified: 13:36:32" itemprop="dateCreated datePublished" datetime="2022-05-25T10:41:11+08:00">2022-05-25</time>
+              <time title="Created: 2022-05-25 10:41:11 / Modified: 15:51:48" itemprop="dateCreated datePublished" datetime="2022-05-25T10:41:11+08:00">2022-05-25</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -226,14 +226,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>4.7k</span>
+              <span>6.7k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>4 mins.</span>
+              <span>6 mins.</span>
             </span>
 
         </div>
@@ -247,12 +247,13 @@
       
         <p>本文主要介绍了Detectron2中的Matcher实现, Matcher的主要功能是, 为每个候选框分配label, 在anchor-based检测算法中是有很重要的用途~</p>
 <span id="more"></span>
-<h2 id="Contents-3">Contents</h2>
+<h2 id="Contents">Contents</h2>
 <ul>
 <li><a href="#contents">Contents</a>
 <ul>
 <li><a href="#torch-api-used-in-matcher">Torch API used in Matcher</a></li>
 <li><a href="#matcher">Matcher</a></li>
+<li><a href="#retinanet-label-anchors">RetinaNet Label Anchors</a></li>
 </ul>
 </li>
 <li><a href="#reference">Reference</a></li>
@@ -301,6 +302,9 @@
 <li>Return <code>matches</code> 和 <code>match_labels</code></li>
 </ul>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># N表示gt数量, M表示prediction或者anchor数量</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>match_quality_matrix</span><br><span class="line">(N, M)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>matches.shape</span><br><span class="line">(N, )</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>match_labels.shape</span><br><span class="line">(N, )</span><br><span class="line"></span><br><span class="line"><span class="comment"># matches 是每个 prediction 分配到的 gt, 这张图里共有N个gt</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>matches</span><br><span class="line">tensor([ <span class="number">0</span>,  <span class="number">0</span>,  <span class="number">0</span>,  ..., <span class="number">13</span>,  <span class="number">3</span>, <span class="number">11</span>], device=<span class="string">&#x27;cuda:0&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># match_labels 是每个 prediction 分配到的 label</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>match_labels</span><br><span class="line">tensor([<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,  ..., <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>], device=<span class="string">&#x27;cuda:0&#x27;</span>, dtype=torch.int8)</span><br></pre></td></tr></table></figure>
+<h3 id="RetinaNet-Label-Anchors">RetinaNet Label Anchors</h3>
+<p>RetinaNet在得到了Matcher返回的matches和match_labels后是如何分配label的, 以下是其分配label的核心代码:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@torch.no_grad()</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">label_anchors</span>(<span class="params">self, anchors, gt_instances</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        anchors (list[Boxes]): A list of #feature level Boxes.</span></span><br><span class="line"><span class="string">            The Boxes contains anchors of this image on the specific feature level.</span></span><br><span class="line"><span class="string">        gt_instances (list[Instances]): a list of N `Instances`s. The i-th</span></span><br><span class="line"><span class="string">            `Instances` contains the ground-truth per-instance annotations</span></span><br><span class="line"><span class="string">            for the i-th input image.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        list[Tensor]: List of #img tensors. i-th element is a vector of labels whose length is</span></span><br><span class="line"><span class="string">        the total number of anchors across all feature maps (sum(Hi * Wi * A)).</span></span><br><span class="line"><span class="string">        Label values are in &#123;-1, 0, ..., K&#125;, with -1 means ignore, and K means background.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        list[Tensor]: i-th element is a Rx4 tensor, where R is the total number of anchors</span></span><br><span class="line"><span class="string">        across feature maps. The values are the matched gt boxes for each anchor.</span></span><br><span class="line"><span class="string">        Values are undefined for those anchors not labeled as foreground.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    anchors = Boxes.cat(anchors)  <span class="comment"># Rx4</span></span><br><span class="line"></span><br><span class="line">    gt_labels = []</span><br><span class="line">    matched_gt_boxes = []</span><br><span class="line">    <span class="keyword">for</span> gt_per_image <span class="keyword">in</span> gt_instances:</span><br><span class="line">        <span class="comment"># 得到 ground truth 和 anchors 的 iou 矩阵</span></span><br><span class="line">        match_quality_matrix = pairwise_iou(gt_per_image.gt_boxes, anchors)</span><br><span class="line">        <span class="comment"># matched_idxs: 每个anchor或者prediction分配到的 gt box</span></span><br><span class="line">        <span class="comment"># anchor_labels: 每个anchor或者prediction分配到的 label</span></span><br><span class="line">        <span class="comment"># 一般 -1 表示 ignore, 0 表示 false negatives, 1 表示 true positives</span></span><br><span class="line">        matched_idxs, anchor_labels = self.anchor_matcher(match_quality_matrix)</span><br><span class="line">        <span class="keyword">del</span> match_quality_matrix</span><br><span class="line"></span><br><span class="line">        <span class="comment"># gt_per_image是一个Boxes的Instance</span></span><br><span class="line">        <span class="comment"># gt_per_image.gt_boxes.tensor是对应的ground truth的bounding box向量 (N, 4)</span></span><br><span class="line">        <span class="comment"># gt_per_image.gt_classes是对应的label, coco中为0-79</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(gt_per_image) &gt; <span class="number">0</span>:</span><br><span class="line">            matched_gt_boxes_i = gt_per_image.gt_boxes.tensor[matched_idxs]</span><br><span class="line"></span><br><span class="line">            gt_labels_i = gt_per_image.gt_classes[matched_idxs]</span><br><span class="line">            <span class="comment"># Anchors with label 0 are treated as background.</span></span><br><span class="line">            gt_labels_i[anchor_labels == <span class="number">0</span>] = self.num_classes</span><br><span class="line">            <span class="comment"># Anchors with label -1 are ignored.</span></span><br><span class="line">            gt_labels_i[anchor_labels == -<span class="number">1</span>] = -<span class="number">1</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            matched_gt_boxes_i = torch.zeros_like(anchors.tensor)</span><br><span class="line">            gt_labels_i = torch.zeros_like(matched_idxs) + self.num_classes</span><br><span class="line"></span><br><span class="line">        gt_labels.append(gt_labels_i)</span><br><span class="line">        matched_gt_boxes.append(matched_gt_boxes_i)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> gt_labels, matched_gt_boxes</span><br></pre></td></tr></table></figure>
 <h2 id="Reference">Reference</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/matcher.py">detectron2 matcher</a></li>
@@ -385,7 +389,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-3"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Torch-API-used-in-Matcher"><span class="nav-number">1.1.</span> <span class="nav-text">Torch API used in Matcher</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Matcher"><span class="nav-number">1.2.</span> <span class="nav-text">Matcher</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Torch-API-used-in-Matcher"><span class="nav-number">1.1.</span> <span class="nav-text">Torch API used in Matcher</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Matcher"><span class="nav-number">1.2.</span> <span class="nav-text">Matcher</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RetinaNet-Label-Anchors"><span class="nav-number">1.3.</span> <span class="nav-text">RetinaNet Label Anchors</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -460,13 +464,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">125k</span>
+    <span title="Symbols count total">127k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">1:53</span>
+    <span title="Reading time total">1:55</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
