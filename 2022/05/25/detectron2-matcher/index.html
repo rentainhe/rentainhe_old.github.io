@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文主要介绍了Detectron2中的Matcher实现, Matcher的主要功能是, 为每个候选框分配label, 在anchor-based检测算法中是有很重要的用途~">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Detectron2 Learning Notes(5): Matcher">
+<meta property="og:url" content="http://example.com/2022/05/25/detectron2-matcher/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文主要介绍了Detectron2中的Matcher实现, Matcher的主要功能是, 为每个候选框分配label, 在anchor-based检测算法中是有很重要的用途~">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-05-25T02:41:11.000Z">
+<meta property="article:modified_time" content="2022-05-25T05:36:32.382Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Detectron2">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/05/25/detectron2-matcher/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Detectron2 Learning Notes(5): Matcher | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">46</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/25/detectron2-matcher/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Detectron2 Learning Notes(5): Matcher
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-05-25 10:41:11 / Modified: 13:36:32" itemprop="dateCreated datePublished" datetime="2022-05-25T10:41:11+08:00">2022-05-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Detectron2/" itemprop="url" rel="index"><span itemprop="name">Detectron2</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>4.7k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>4 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要介绍了Detectron2中的Matcher实现, Matcher的主要功能是, 为每个候选框分配label, 在anchor-based检测算法中是有很重要的用途~</p>
+<span id="more"></span>
+<h2 id="Contents-3">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#torch-api-used-in-matcher">Torch API used in Matcher</a></li>
+<li><a href="#matcher">Matcher</a></li>
+</ul>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h3 id="Torch-API-used-in-Matcher">Torch API used in Matcher</h3>
+<ul>
+<li><code>tensor.numel()</code></li>
+</ul>
+<p>返回这个张量中总的元素个数, 用法和<code>torch.numel()</code>一样</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">a = torch.randn(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>)</span><br><span class="line"><span class="built_in">print</span>(torch.numel(a))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">120</span></span><br><span class="line"></span><br><span class="line">a = torch.zeros(<span class="number">4</span>, <span class="number">4</span>)</span><br><span class="line"><span class="built_in">print</span>(torch.numel(a))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">16</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>tensor.new_full()</code>: <a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.Tensor.new_full.html">document</a></li>
+</ul>
+<p>torch中有一部分内置的类似用法, 例如: <code>torch.ones(size)</code>, <code>torch.zeros(size)</code>, 可以创建一个<code>size</code>大小的tensor, 并且其中全部为1或者0, 但是如果想得到一个全为一个指定的值的tensor的话, 就可以用到<code>tensor.new_full</code>方法, 注意这里是<code>tensor.new_full</code>, 所以需要依赖于某个tensor来使用, 默认返回与这个tensor相同device和dtype的一个新的tensor</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor = torch.ones((<span class="number">2</span>,), dtype=torch.float64)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor.new_full((<span class="number">3</span>, <span class="number">4</span>), <span class="number">3.141592</span>)</span><br><span class="line">tensor([[ <span class="number">3.1416</span>,  <span class="number">3.1416</span>,  <span class="number">3.1416</span>,  <span class="number">3.1416</span>],</span><br><span class="line">        [ <span class="number">3.1416</span>,  <span class="number">3.1416</span>,  <span class="number">3.1416</span>,  <span class="number">3.1416</span>],</span><br><span class="line">        [ <span class="number">3.1416</span>,  <span class="number">3.1416</span>,  <span class="number">3.1416</span>,  <span class="number">3.1416</span>]], dtype=torch.float64)  <span class="comment"># 有相同的dtype</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>tensor.max()</code></li>
+</ul>
+<p>沿着索引返回最大值, 以及其对应的index</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"></span><br><span class="line">x = torch.rand(<span class="number">6</span>, <span class="number">16</span>)</span><br><span class="line">matched_vals, matches = x.<span class="built_in">max</span>(dim=<span class="number">0</span>)</span><br><span class="line"><span class="built_in">print</span>(matched_vals.shape)  <span class="comment"># torch.Size([16])</span></span><br><span class="line"><span class="built_in">print</span>(matches.shape)  <span class="comment"># torch.Size([16])</span></span><br></pre></td></tr></table></figure>
+<p><code>dim=0</code>表示沿着0这个维度去进行比较, 也就是从上到下进行比较, 返回<strong>每个列</strong>的最大值, 以及其对应的index</p>
+<h3 id="Matcher">Matcher</h3>
+<ul>
+<li><code>Matcher</code>的初始化: 传入<code>thresholds</code>, <code>labels</code>和<code>allow_low_quality_matches</code>三个参数
+<ul>
+<li><code>thresholds</code>: 一个list, 包含不同级别的threshold, 用来区分不同level的prediction, RetinaNet中默认设置为<code>[0.4, 0.5]</code></li>
+<li><code>labels</code>: 不同level的<code>thresholds</code>对应的label, 比如<code>&#123;-1, 0, 1&#125;</code>分别对应<code>&#123;ignore, negative class, positive class&#125;</code></li>
+</ul>
+</li>
+</ul>
+<p>如果指定了<code>thresholds</code>为<code>[0.3, 0.5]</code>, <code>labels</code>为<code>[0, -1, 1]</code>的话, 意味着<code>iou &lt; 0.3</code>的情况下, 会被分配<code>0</code>标签, 作为<code>false negatives</code>, <code>0.3 &lt;= iou &lt; 0.5</code>会被分配<code>-1</code>标签, 表示被ignored, <code>0.5 &lt;= iou</code>会被分配<code>1</code>标签, 作为<code>true positives</code>.</p>
+<p>以下以<code>RetinaNet</code>的超参为例:</p>
+<ul>
+<li>Matcher初始化阶段:</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 首先会对thresholds的两侧append一个-inf和inf</span></span><br><span class="line">thresholds = thresholds[:]</span><br><span class="line"><span class="keyword">assert</span> thresholds[<span class="number">0</span>] &gt; <span class="number">0</span></span><br><span class="line">thresholds.insert(<span class="number">0</span>, -<span class="built_in">float</span>(<span class="string">&quot;inf&quot;</span>))</span><br><span class="line">thresholds.append(<span class="built_in">float</span>(<span class="string">&quot;inf&quot;</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 然后经三个检查操作</span></span><br><span class="line"><span class="keyword">assert</span> <span class="built_in">all</span>([low &lt;= high <span class="keyword">for</span> (low, high) <span class="keyword">in</span> <span class="built_in">zip</span>(thresholds[:-<span class="number">1</span>], thresholds[<span class="number">1</span>:])])</span><br><span class="line"><span class="comment"># thresholds: [-inf, 0.4, 0.5, inf]</span></span><br><span class="line"><span class="comment"># (low, high): (-inf, 0.4), (0.4, 0.5), (0.5, inf)</span></span><br><span class="line"><span class="comment"># 用于检查是否thresholds是一个递增的list</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查labels是否在[-1, 0, 1]之间</span></span><br><span class="line"><span class="keyword">assert</span> <span class="built_in">all</span>([l <span class="keyword">in</span> [-<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>] <span class="keyword">for</span> l <span class="keyword">in</span> labels])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 传入2个threshold会切分出3个区间, 由于append了两个inf, 所以labels长度应该为 thresholds - 1</span></span><br><span class="line"><span class="keyword">assert</span> <span class="built_in">len</span>(labels) == <span class="built_in">len</span>(thresholds) - <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>Matcher调用阶段</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 传入 match_quality_matrix is M (gt) x N (predicted)</span></span><br><span class="line"><span class="comment"># Max over gt elements (dim 0) to find best gt candidate for each prediction</span></span><br><span class="line"><span class="comment"># dim=0表示沿着纵轴, 纵轴上的数据是每个prediction与所有gt对应的iou, 这里找到对应最大iou的gt的index, 为每个prediction找到最适合的gt</span></span><br><span class="line">matched_vals, matches = match_quality_matrix.<span class="built_in">max</span>(dim=<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认将label初始化全为1, 全为true positives</span></span><br><span class="line">match_labels = matches.new_full(matches.size(), <span class="number">1</span>, dtype=torch.int8)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将label匹配到不同的prediction上</span></span><br><span class="line"><span class="keyword">for</span> (l, low, high) <span class="keyword">in</span> <span class="built_in">zip</span>(self.labels, self.thresholds[:-<span class="number">1</span>], self.thresholds[<span class="number">1</span>:]):  </span><br><span class="line">    <span class="comment"># 第一轮 (l, low, high) 为 (0, -inf, 0.4), 需要将iou小于0.4的部分的label设置为0</span></span><br><span class="line">    low_high = (matched_vals &gt;= low) &amp; (matched_vals &lt; high)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># matched_vals中在low_high区间的值对应的label设置为 l (label)</span></span><br><span class="line">    match_labels[low_high] = l</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> self.allow_low_quality_matches:</span><br><span class="line">    self.set_low_quality_matches_(match_labels, match_quality_matrix)</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> matches, match_labels</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>allow_low_quality_matches</code>的目的是, 有可能某个ground truth和<strong>所有</strong>的anchor对应的iou都小于threshold, 那么有可能会分配不到true positive的anchor, 考虑到这种情况, 设置了这个参数, 表示及时gt和anchor的iou小于阈值, 也会为其分配到最大的iou的anchor作为其true positive的训练数据</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">set_low_quality_matches_</span>(<span class="params">self, match_labels, match_quality_matrix</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Produce additional matches for predictions that have only low-quality matches.</span></span><br><span class="line"><span class="string">    Specifically, for each ground-truth G find the set of predictions that have</span></span><br><span class="line"><span class="string">    maximum overlap with it (including ties); for each prediction in that set, if</span></span><br><span class="line"><span class="string">    it is unmatched, then match it to the ground-truth G.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    This function implements the RPN assignment case (i) in Sec. 3.1.2 of</span></span><br><span class="line"><span class="string">    :paper:`Faster R-CNN`.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># For each gt, find the prediction with which it has highest quality</span></span><br><span class="line">    <span class="comment"># 对于每个groud truth, 找到其对应最好的anchor box</span></span><br><span class="line">    highest_quality_foreach_gt, _ = match_quality_matrix.<span class="built_in">max</span>(dim=<span class="number">1</span>)</span><br><span class="line">    <span class="comment"># Find the highest quality match available, even if it is low, including ties.</span></span><br><span class="line">    <span class="comment"># Note that the matches qualities must be positive due to the use of</span></span><br><span class="line">    <span class="comment"># `torch.nonzero`.</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 这里的操作比较细节, highest_quality_foreach_gt是表示与每个gt匹配的最大的iou的anchor的值, 在这里用 match_quality_matrix == highest_quality_foreach_gt[:, None] 是考虑到, 有可能gt对应的最大的iou的anchor, 不止一个, 可能有多个, 所以需要找到他们对应的索引下标</span></span><br><span class="line">    _, pred_inds_with_highest_quality = nonzero_tuple(</span><br><span class="line">        match_quality_matrix == highest_quality_foreach_gt[:, <span class="literal">None</span>]</span><br><span class="line">    )</span><br><span class="line">    <span class="comment"># If an anchor was labeled positive only due to a low-quality match</span></span><br><span class="line">    <span class="comment"># with gt_A, but it has larger overlap with gt_B, it&#x27;s matched index will still be gt_B.</span></span><br><span class="line">    <span class="comment"># This follows the implementation in Detectron, and is found to have no significant impact.</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 将这些anchor的label也设置为1</span></span><br><span class="line">    match_labels[pred_inds_with_highest_quality] = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>Return <code>matches</code> 和 <code>match_labels</code></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># N表示gt数量, M表示prediction或者anchor数量</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>match_quality_matrix</span><br><span class="line">(N, M)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>matches.shape</span><br><span class="line">(N, )</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>match_labels.shape</span><br><span class="line">(N, )</span><br><span class="line"></span><br><span class="line"><span class="comment"># matches 是每个 prediction 分配到的 gt, 这张图里共有N个gt</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>matches</span><br><span class="line">tensor([ <span class="number">0</span>,  <span class="number">0</span>,  <span class="number">0</span>,  ..., <span class="number">13</span>,  <span class="number">3</span>, <span class="number">11</span>], device=<span class="string">&#x27;cuda:0&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># match_labels 是每个 prediction 分配到的 label</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>match_labels</span><br><span class="line">tensor([<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,  ..., <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>], device=<span class="string">&#x27;cuda:0&#x27;</span>, dtype=torch.int8)</span><br></pre></td></tr></table></figure>
+<h2 id="Reference">Reference</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/matcher.py">detectron2 matcher</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Detectron2/" rel="tag"># Detectron2</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/24/detectron2-anchor-generator/" rel="prev" title="Detectron2 Learning Notes(4): Anchor Generator">
+      <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(4): Anchor Generator
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-3"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Torch-API-used-in-Matcher"><span class="nav-number">1.1.</span> <span class="nav-text">Torch API used in Matcher</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Matcher"><span class="nav-number">1.2.</span> <span class="nav-text">Matcher</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">125k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">1:53</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

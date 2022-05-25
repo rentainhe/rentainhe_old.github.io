@@ -20,22 +20,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="本文介绍了关于 torch.arange, torch.meshgrid 的一些相关接口的使用, 以及一些与torch.arange有相似功能接口的方法">
+  <meta name="description" content="本文主要介绍了d2中的Anchor Generator相关的代码实现~">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Pytorch Learning Notes(6): torch.arange, torch.meshgrid">
-<meta property="og:url" content="http://example.com/2022/05/04/pytorch-meshgrid/index.html">
+<meta property="og:title" content="Detectron2 Learning Notes(4): Anchor Generator">
+<meta property="og:url" content="http://example.com/2022/05/24/detectron2-anchor-generator/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="本文介绍了关于 torch.arange, torch.meshgrid 的一些相关接口的使用, 以及一些与torch.arange有相似功能接口的方法">
+<meta property="og:description" content="本文主要介绍了d2中的Anchor Generator相关的代码实现~">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2022/05/04/pytorch-meshgrid/logspace.png">
-<meta property="article:published_time" content="2022-05-04T01:25:12.000Z">
-<meta property="article:modified_time" content="2022-05-04T04:06:21.972Z">
+<meta property="article:published_time" content="2022-05-24T06:19:16.000Z">
+<meta property="article:modified_time" content="2022-05-24T06:29:28.248Z">
 <meta property="article:author" content="Ren Tianhe">
-<meta property="article:tag" content="Pytorch">
+<meta property="article:tag" content="Detectron2">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2022/05/04/pytorch-meshgrid/logspace.png">
 
-<link rel="canonical" href="http://example.com/2022/05/04/pytorch-meshgrid/">
+<link rel="canonical" href="http://example.com/2022/05/24/detectron2-anchor-generator/">
 
 
 <script id="page-configurations">
@@ -48,7 +46,7 @@
   };
 </script>
 
-  <title>Pytorch Learning Notes(6): torch.arange, torch.meshgrid | RenTianhe's Blog</title>
+  <title>Detectron2 Learning Notes(4): Anchor Generator | RenTianhe's Blog</title>
   
 
 
@@ -179,7 +177,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/04/pytorch-meshgrid/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/24/detectron2-anchor-generator/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -192,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Pytorch Learning Notes(6): torch.arange, torch.meshgrid
+          Detectron2 Learning Notes(4): Anchor Generator
         </h1>
 
         <div class="post-meta">
@@ -203,7 +201,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2022-05-04 09:25:12 / Modified: 12:06:21" itemprop="dateCreated datePublished" datetime="2022-05-04T09:25:12+08:00">2022-05-04</time>
+              <time title="Created: 2022-05-24 14:19:16 / Modified: 14:29:28" itemprop="dateCreated datePublished" datetime="2022-05-24T14:19:16+08:00">2022-05-24</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -211,7 +209,7 @@
               </span>
               <span class="post-meta-item-text">In</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Pytorch/" itemprop="url" rel="index"><span itemprop="name">Pytorch</span></a>
+                  <a href="/categories/Detectron2/" itemprop="url" rel="index"><span itemprop="name">Detectron2</span></a>
                 </span>
             </span>
 
@@ -228,14 +226,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.8k</span>
+              <span>1.4k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>2 mins.</span>
+              <span>1 mins.</span>
             </span>
 
         </div>
@@ -247,76 +245,22 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>本文介绍了关于 <code>torch.arange</code>, <code>torch.meshgrid</code> 的一些相关接口的使用, 以及一些与<code>torch.arange</code>有相似功能接口的方法</p>
+        <p>本文主要介绍了d2中的Anchor Generator相关的代码实现~</p>
 <span id="more"></span>
-<h2 id="Contents">Contents</h2>
+<h2 id="Contents-2">Contents</h2>
+<h3 id="BufferList-vs-nn-ParameterList">BufferList vs nn.ParameterList</h3>
 <ul>
-<li><a href="#contents">Contents</a>
+<li><strong>nn.ParameterList</strong></li>
+</ul>
+<p>类似python的列表一样存储参数: <a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.nn.ParameterList.html">document</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyModule</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(MyModule, self).__init__()</span><br><span class="line">        self.params = nn.ParameterList([nn.Parameter(torch.randn(<span class="number">10</span>, <span class="number">10</span>)) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>)])</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        <span class="comment"># ParameterList can act as an iterable, or be indexed using ints</span></span><br><span class="line">        <span class="keyword">for</span> i, p <span class="keyword">in</span> <span class="built_in">enumerate</span>(self.params):</span><br><span class="line">            x = self.params[i // <span class="number">2</span>].mm(x) + p.mm(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<p>有<code>append</code>和<code>extend</code>的用法, 和python的list类似, 可以将参数添加到<code>nn.ParameterList</code>中去</p>
 <ul>
-<li><a href="#torcharange-torchrange-torchlinespace-torchlogspace">torch.arange, torch.range, torch.linespace, torch.logspace</a>
-<ul>
-<li><a href="#torcharange">torch.arange</a></li>
-<li><a href="#torchrange">torch.range</a></li>
-<li><a href="#torchlinspace">torch.linspace</a></li>
-<li><a href="#torchlogspace">torch.logspace</a></li>
+<li>detectron2的<strong>BufferList</strong></li>
 </ul>
-</li>
-<li><a href="#torchmeshgrid">torch.meshgrid</a></li>
-</ul>
-</li>
-<li><a href="#reference">Reference</a></li>
-</ul>
-<h3 id="torch-arange-torch-range-torch-linespace-torch-logspace">torch.arange, torch.range, torch.linespace, torch.logspace</h3>
-<p>这几个接口具有类似的功能: <strong>根据步长创建一维tensor</strong>, 并且具有几个类似的接口:</p>
-<ul>
-<li><code>start</code>: 起始元素, 得看开闭区间能不能取到</li>
-<li><code>end</code>: 终止元素, 也得看开闭区间能不能取到</li>
-<li><code>step</code>: 步长大小, 也就是元素间隔大小</li>
-<li><code>out</code> 创建后tensor赋予哪个变量</li>
-<li><code>dtype</code>: 元素的类型</li>
-<li><code>layout</code>: 返回元素的布局, 默认为<code>torch.strided</code></li>
-<li><code>device</code>: 生成tensor的设备</li>
-<li><code>requires_grad</code>: 生成的元素是否具备梯度</li>
-</ul>
-<h4 id="torch-arange">torch.arange</h4>
-<ul>
-<li><code>torch.arange()</code>是<strong>左闭右开</strong>, 即 <strong>[start, end)</strong>:</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(torch.arange(start=<span class="number">1</span>, end=<span class="number">4</span>))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])</span><br></pre></td></tr></table></figure>
-<h4 id="torch-range">torch.range</h4>
-<ul>
-<li><code>torch.range()</code>是<strong>左闭右闭</strong>, 即 <strong>[start, end]</strong>:</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(torch.<span class="built_in">range</span>(start=<span class="number">1</span>, end=<span class="number">4</span>))</span><br><span class="line">tensor([<span class="number">1.</span>, <span class="number">2.</span>, <span class="number">3.</span>, <span class="number">4.</span>])</span><br></pre></td></tr></table></figure>
-<p>但是在使用的时候有一行特别的输出:</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">debug.py:<span class="number">56</span>: UserWarning: torch.<span class="built_in">range</span> <span class="keyword">is</span> deprecated <span class="keyword">and</span> will be removed <span class="keyword">in</span> a future release because its behavior <span class="keyword">is</span> inconsistent <span class="keyword">with</span> Python<span class="string">&#x27;s range builtin. Instead, use torch.arange, which produces values in [start, end).</span></span><br></pre></td></tr></table></figure>
-<p>说明这个方法已经过时了, 在未来会调整为<strong>左闭右开</strong>的形式</p>
-<h4 id="torch-linspace">torch.linspace</h4>
-<ul>
-<li><code>torch.linespace()</code>方法也是<strong>左闭右闭</strong>的, 即 <strong>[start, end]</strong>, 但是计算步长的方法不一样:</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(torch.linspace(start=<span class="number">1</span>, end=<span class="number">4</span>, steps=<span class="number">5</span>))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor([<span class="number">1.0000</span>, <span class="number">1.7500</span>, <span class="number">2.5000</span>, <span class="number">3.2500</span>, <span class="number">4.0000</span>])</span><br></pre></td></tr></table></figure>
-<p>在使用的时候必须指定<code>steps</code>, 这个方法可以看出, 是根据steps<strong>等间隔地</strong>划分 <strong>[start, end]</strong> 这个区间</p>
-<h4 id="torch-logspace">torch.logspace</h4>
-<p>也是等间隔地采样, 但是采样的空间是<code>log</code>不是<code>linear</code>, 每个采样的值为:<br>
-<img src="/2022/05/04/pytorch-meshgrid/logspace.png" alt></p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(torch.logspace(start=<span class="number">0.1</span>, end=<span class="number">1.0</span>, steps=<span class="number">5</span>))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor([  <span class="number">1.2589</span>,   <span class="number">2.1135</span>,   <span class="number">3.5481</span>,   <span class="number">5.9566</span>,  <span class="number">10.0000</span>])</span><br></pre></td></tr></table></figure>
-<h3 id="torch-meshgrid">torch.meshgrid</h3>
-<ul>
-<li><code>torch.meshgrid()</code>的功能是生成网格, 可以用于生成点坐标</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"></span><br><span class="line">x = torch.tensor([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])</span><br><span class="line">y = torch.tensor([<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>])</span><br><span class="line">output_x, output_y = torch.meshgrid(x, y)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(output_x)</span><br><span class="line"><span class="built_in">print</span>(output_y)</span><br></pre></td></tr></table></figure>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">tensor([[1, 1, 1],</span><br><span class="line">        [2, 2, 2],</span><br><span class="line">        [3, 3, 3]])</span><br><span class="line">tensor([[4, 5, 6],</span><br><span class="line">        [4, 5, 6],</span><br><span class="line">        [4, 5, 6]])</span><br></pre></td></tr></table></figure>
-<p>可以发现, 组合上面的输出可以得到: <code>(1, 4)</code>, <code>(1, 5)</code>, <code>(1, 6)</code>, <code>(2, 4)</code>, <code>(2, 5)</code>, … <code>(3, 6)</code>的坐标</p>
-<h2 id="Reference">Reference</h2>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/Fluid_ray/article/details/109742238">pytorch每日一学20(torch.arange()、torch.range()、torch.linespace()、torch.logspace())根据步长创造一维tensor</a></li>
-<li><a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.linspace.html">torch.linspace文档</a></li>
-<li><a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/generated/torch.logspace.html">torch.logspace文档</a></li>
-<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/56659255/what-does-layout-torch-strided-mean">torch的layour - torch.strided</a></li>
-<li><a target="_blank" rel="noopener" href="https://pytorch.org/docs/master/generated/torch.meshgrid.html">torch.meshgrid文档</a></li>
-</ul>
-
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BufferList</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Similar to nn.ParameterList, but for buffers</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, buffers</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="keyword">for</span> i, buffer <span class="keyword">in</span> <span class="built_in">enumerate</span>(buffers):</span><br><span class="line">            <span class="comment"># Use non-persistent buffer so the values are not saved in checkpoint</span></span><br><span class="line">            self.register_buffer(<span class="built_in">str</span>(i), buffer, persistent=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__len__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">len</span>(self._buffers)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">iter</span>(self._buffers.values())</span><br></pre></td></tr></table></figure>
+<h3 id="Create-Grid-Offsets">Create Grid Offsets</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_create_grid_offsets</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    size: <span class="type">List</span>[<span class="built_in">int</span>], stride: <span class="built_in">int</span>, offset: <span class="built_in">float</span>, target_device_tensor: torch.Tensor</span></span></span><br><span class="line"><span class="params"><span class="function"></span>):</span></span><br><span class="line">    grid_height, grid_width = size</span><br><span class="line">    shifts_x = move_device_like(</span><br><span class="line">        torch.arange(offset * stride, grid_width * stride, step=stride, dtype=torch.float32),</span><br><span class="line">        target_device_tensor,</span><br><span class="line">    )</span><br><span class="line">    shifts_y = move_device_like(</span><br><span class="line">        torch.arange(offset * stride, grid_height * stride, step=stride, dtype=torch.float32),</span><br><span class="line">        target_device_tensor,</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    shift_y, shift_x = torch.meshgrid(shifts_y, shifts_x)</span><br><span class="line">    shift_x = shift_x.reshape(-<span class="number">1</span>)</span><br><span class="line">    shift_y = shift_y.reshape(-<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">return</span> shift_x, shift_y</span><br></pre></td></tr></table></figure>
     </div>
 
     
@@ -325,7 +269,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Pytorch/" rel="tag"># Pytorch</a>
+              <a href="/tags/Detectron2/" rel="tag"># Detectron2</a>
           </div>
 
         
@@ -334,12 +278,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/05/03/anchor-box/" rel="prev" title="Object Detection (2): Anchor Box (未完结)">
-      <i class="fa fa-chevron-left"></i> Object Detection (2): Anchor Box (未完结)
+    <a href="/2022/05/24/detectron2-layers-2/" rel="prev" title="Detectron2 Learning Notes(3): layers.wrappers">
+      <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(3): layers.wrappers
     </a></div>
       <div class="post-nav-item">
-    <a href="/2022/05/04/detection-metrics/" rel="next" title="Object Detection (3): Object Detection Metrics">
-      Object Detection (3): Object Detection Metrics <i class="fa fa-chevron-right"></i>
+    <a href="/2022/05/25/detectron2-matcher/" rel="next" title="Detectron2 Learning Notes(5): Matcher">
+      Detectron2 Learning Notes(5): Matcher <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -399,7 +343,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#torch-arange-torch-range-torch-linespace-torch-logspace"><span class="nav-number">1.1.</span> <span class="nav-text">torch.arange, torch.range, torch.linespace, torch.logspace</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#torch-arange"><span class="nav-number">1.1.1.</span> <span class="nav-text">torch.arange</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#torch-range"><span class="nav-number">1.1.2.</span> <span class="nav-text">torch.range</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#torch-linspace"><span class="nav-number">1.1.3.</span> <span class="nav-text">torch.linspace</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#torch-logspace"><span class="nav-number">1.1.4.</span> <span class="nav-text">torch.logspace</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#torch-meshgrid"><span class="nav-number">1.2.</span> <span class="nav-text">torch.meshgrid</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-2"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BufferList-vs-nn-ParameterList"><span class="nav-number">1.1.</span> <span class="nav-text">BufferList vs nn.ParameterList</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Grid-Offsets"><span class="nav-number">1.2.</span> <span class="nav-text">Create Grid Offsets</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
