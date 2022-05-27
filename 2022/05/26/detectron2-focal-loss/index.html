@@ -20,18 +20,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="本文以RetinaNet为例, 介绍了FPN和FocalLoss在detectron2下的实现">
+  <meta name="description" content="本文以RetinaNet为例, 介绍了FocalLoss在detectron2下的实现">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Detectron2 Learning Notes(7): FPN and FocalLoss ">
+<meta property="og:title" content="Detectron2 Learning Notes(7): Focal Loss ">
 <meta property="og:url" content="http://example.com/2022/05/26/detectron2-focal-loss/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="本文以RetinaNet为例, 介绍了FPN和FocalLoss在detectron2下的实现">
+<meta property="og:description" content="本文以RetinaNet为例, 介绍了FocalLoss在detectron2下的实现">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/05/26/detectron2-focal-loss/focal_loss.png">
 <meta property="article:published_time" content="2022-05-26T15:22:00.000Z">
-<meta property="article:modified_time" content="2022-05-26T15:23:34.004Z">
+<meta property="article:modified_time" content="2022-05-27T07:32:37.460Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="Detectron2">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/05/26/detectron2-focal-loss/focal_loss.png">
 
 <link rel="canonical" href="http://example.com/2022/05/26/detectron2-focal-loss/">
 
@@ -46,7 +48,7 @@
   };
 </script>
 
-  <title>Detectron2 Learning Notes(7): FPN and FocalLoss  | RenTianhe's Blog</title>
+  <title>Detectron2 Learning Notes(7): Focal Loss  | RenTianhe's Blog</title>
   
 
 
@@ -136,7 +138,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">48</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">49</span></a>
 
   </li>
         <li class="menu-item menu-item-projects">
@@ -190,7 +192,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Detectron2 Learning Notes(7): FPN and FocalLoss 
+          Detectron2 Learning Notes(7): Focal Loss 
         </h1>
 
         <div class="post-meta">
@@ -199,10 +201,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2022-05-26 23:22:00 / Modified: 23:23:34" itemprop="dateCreated datePublished" datetime="2022-05-26T23:22:00+08:00">2022-05-26</time>
+              <time title="Created: 2022-05-26 23:22:00" itemprop="dateCreated datePublished" datetime="2022-05-26T23:22:00+08:00">2022-05-26</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-05-27 15:32:37" itemprop="dateModified" datetime="2022-05-27T15:32:37+08:00">2022-05-27</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -226,14 +234,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>57</span>
+              <span>3.2k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>1 mins.</span>
+              <span>3 mins.</span>
             </span>
 
         </div>
@@ -245,10 +253,38 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>本文以RetinaNet为例, 介绍了FPN和FocalLoss在detectron2下的实现</p>
+        <p>本文以RetinaNet为例, 介绍了FocalLoss在detectron2下的实现</p>
 <span id="more"></span>
 <h2 id="Contents">Contents</h2>
-<h3 id="FPN">FPN</h3>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#fone_hot">F.one_hot</a></li>
+<li><a href="#focalloss">FocalLoss</a></li>
+</ul>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h3 id="F-one-hot">F.one_hot</h3>
+<p>在detectron2中分类输入FocalLoss进行计算的有几个参数, 一个是模型预测的logits, 一个是模型训练用的target</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 对于ground truth target的处理</span></span><br><span class="line">gt_labels_target = F.one_hot(gt_labels[valid_mask], num_classes=self.num_classes + <span class="number">1</span>)[</span><br><span class="line">    :, :-<span class="number">1</span></span><br><span class="line">]  <span class="comment"># no loss for the last (background) class</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>用真实数据为例:</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torch.nn.functional <span class="keyword">as</span> F</span><br><span class="line"></span><br><span class="line"><span class="comment"># 假设16表示背景类, 总共有16+1个类别</span></span><br><span class="line">gt_labels = torch.Tensor([<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">16</span>, <span class="number">16</span>, <span class="number">16</span>]).long()</span><br><span class="line">gt_labels_target = F.one_hot(gt_labels, num_classes=<span class="number">16</span>+<span class="number">1</span>)</span><br><span class="line"><span class="built_in">print</span>(gt_labels_target)</span><br><span class="line">tensor([[<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">        [<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>],  <span class="comment"># 如果是背景类的话最后一列为1</span></span><br><span class="line">        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>],</span><br><span class="line">        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>]])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 不考虑背景类的Loss计算</span></span><br><span class="line"><span class="built_in">print</span>(gt_labels_target[:, :-<span class="number">1</span>])</span><br><span class="line">tensor([[<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">        [<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],  <span class="comment"># 背景类的label全为0</span></span><br><span class="line">        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],</span><br><span class="line">        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]])</span><br></pre></td></tr></table></figure>
+<h3 id="FocalLoss">FocalLoss</h3>
+<p>FocalLoss的定义如下图所示:</p>
+<img src="/2022/05/26/detectron2-focal-loss/focal_loss.png" class>
+<p>主要是改写了原来的<code>BCELoss</code>, 将<code>-log(p)</code>写为了<code>-(1-p)log(p)</code>, 如果这个分类的标签为1, 输出的p属于<code>(0-1)</code>之间, 如果预测出的<code>p</code>比较小, 说明可能是个hard example, 此时<code>(1-p)</code>的值就会比较大, 那么这个example在Loss中的占比就会相应的变大</p>
+<blockquote>
+<p>简要说明，focalloss增加困难样本的比重，降低容易样本的比重，因为在目标检测中，大量负样本为容易样本，因而focalloss在目标检测中效果明显。举例说明：当y=1时，p=0.8，说明是一个容易样本，那么(1-0.8)=0.2降低容易样本对损失的影响；P=0.2，说明是困难样本，(1-0.2)=0.8增加了困难样本对损失的影响。当y=0时，p=0.2，是容易样本，系数为0.2；p=0.8，是困难样本，系数为0.8。</p>
+</blockquote>
+<p>相关的代码实现：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sigmoid_focal_loss</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    inputs: torch.Tensor,</span></span></span><br><span class="line"><span class="params"><span class="function">    targets: torch.Tensor,</span></span></span><br><span class="line"><span class="params"><span class="function">    alpha: <span class="built_in">float</span> = -<span class="number">1</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    gamma: <span class="built_in">float</span> = <span class="number">2</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    reduction: <span class="built_in">str</span> = <span class="string">&quot;none&quot;</span>,</span></span></span><br><span class="line"><span class="params"><span class="function"></span>) -&gt; torch.Tensor:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Loss used in RetinaNet for dense detection: https://arxiv.org/abs/1708.02002.</span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        inputs: A float tensor of arbitrary shape.</span></span><br><span class="line"><span class="string">                The predictions for each example.</span></span><br><span class="line"><span class="string">        targets: A float tensor with the same shape as inputs. Stores the binary</span></span><br><span class="line"><span class="string">                 classification label for each element in inputs</span></span><br><span class="line"><span class="string">                (0 for the negative class and 1 for the positive class).</span></span><br><span class="line"><span class="string">        alpha: (optional) Weighting factor in range (0,1) to balance</span></span><br><span class="line"><span class="string">                positive vs negative examples. Default = -1 (no weighting).</span></span><br><span class="line"><span class="string">        gamma: Exponent of the modulating factor (1 - p_t) to</span></span><br><span class="line"><span class="string">               balance easy vs hard examples.</span></span><br><span class="line"><span class="string">        reduction: &#x27;none&#x27; | &#x27;mean&#x27; | &#x27;sum&#x27;</span></span><br><span class="line"><span class="string">                 &#x27;none&#x27;: No reduction will be applied to the output.</span></span><br><span class="line"><span class="string">                 &#x27;mean&#x27;: The output will be averaged.</span></span><br><span class="line"><span class="string">                 &#x27;sum&#x27;: The output will be summed.</span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        Loss tensor with the reduction option applied.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># inputs.shape: (num_anchors, 80)</span></span><br><span class="line">    <span class="comment"># targets.shape: (num_anchors, 80)</span></span><br><span class="line">    inputs = inputs.<span class="built_in">float</span>()</span><br><span class="line">    targets = targets.<span class="built_in">float</span>()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 对logits取sigmoid</span></span><br><span class="line">    p = torch.sigmoid(inputs)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 先计算bce_loss</span></span><br><span class="line">    ce_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction=<span class="string">&quot;none&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># p 是预测为正类的概率</span></span><br><span class="line">    <span class="comment"># p * targets 得到的是正类预测为正的概率</span></span><br><span class="line">    <span class="comment"># (1 - p) * (1 - targets) 得到的是负类预测为负的概率</span></span><br><span class="line">    <span class="comment"># 所以 p_t 表示的就是, positive的概率</span></span><br><span class="line">    p_t = p * targets + (<span class="number">1</span> - p) * (<span class="number">1</span> - targets)</span><br><span class="line">    loss = ce_loss * ((<span class="number">1</span> - p_t) ** gamma)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> alpha &gt;= <span class="number">0</span>:</span><br><span class="line">        <span class="comment"># 这部分是再加一个alpha控制一下系数</span></span><br><span class="line">        alpha_t = alpha * targets + (<span class="number">1</span> - alpha) * (<span class="number">1</span> - targets)</span><br><span class="line">        loss = alpha_t * loss</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 最后根据sum或者mean来控制最终输出的loss的值</span></span><br><span class="line">    <span class="keyword">if</span> reduction == <span class="string">&quot;mean&quot;</span>:</span><br><span class="line">        loss = loss.mean()</span><br><span class="line">    <span class="keyword">elif</span> reduction == <span class="string">&quot;sum&quot;</span>:</span><br><span class="line">        loss = loss.<span class="built_in">sum</span>()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+<h2 id="Reference">Reference</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/429950466">Pytorch对比BCELoss和FocalLoss</a></li>
+</ul>
 
     </div>
 
@@ -270,7 +306,10 @@
     <a href="/2022/05/26/detectron2-retinanet-loss/" rel="prev" title="Detectron2 Learning Notes(6): DenseDetector ">
       <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(6): DenseDetector 
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/27/bceloss/" rel="next" title="Detectron2 Learning Notes(8): BCELoss">
+      Detectron2 Learning Notes(8): BCELoss <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -329,7 +368,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#FPN"><span class="nav-number">1.1.</span> <span class="nav-text">FPN</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#F-one-hot"><span class="nav-number">1.1.</span> <span class="nav-text">F.one_hot</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FocalLoss"><span class="nav-number">1.2.</span> <span class="nav-text">FocalLoss</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -343,7 +382,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">48</span>
+          <span class="site-state-item-count">49</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -404,13 +443,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">141k</span>
+    <span title="Symbols count total">146k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">2:08</span>
+    <span title="Reading time total">2:13</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>

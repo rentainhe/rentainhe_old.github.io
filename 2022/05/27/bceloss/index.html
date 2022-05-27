@@ -20,26 +20,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="本文为理解最早期一篇人脸实时检测器(VJ Detector)的相关笔记">
+  <meta name="description" content="本文介绍了深度学习中常用的BCELoss, CrossEntropy等损失函数~">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Object Detection (1): VJ Detector与积分图像">
-<meta property="og:url" content="http://example.com/2022/03/24/object-detection-20years-1/index.html">
+<meta property="og:title" content="Detectron2 Learning Notes(8): BCELoss">
+<meta property="og:url" content="http://example.com/2022/05/27/bceloss/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="本文为理解最早期一篇人脸实时检测器(VJ Detector)的相关笔记">
+<meta property="og:description" content="本文介绍了深度学习中常用的BCELoss, CrossEntropy等损失函数~">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/2022/03/24/object-detection-20years-1/haar.png">
-<meta property="og:image" content="http://example.com/2022/03/24/object-detection-20years-1/haar_adaboost.png">
-<meta property="og:image" content="http://example.com/2022/03/24/object-detection-20years-1/integral_image_1.png">
-<meta property="og:image" content="http://example.com/2022/03/24/object-detection-20years-1/integral_image_2.png">
-<meta property="og:image" content="http://example.com/2022/03/24/object-detection-20years-1/intergral_image_3.png">
-<meta property="article:published_time" content="2022-03-24T12:56:01.000Z">
-<meta property="article:modified_time" content="2022-05-03T10:22:21.929Z">
+<meta property="article:published_time" content="2022-05-27T05:12:18.000Z">
+<meta property="article:modified_time" content="2022-05-27T07:18:06.865Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="Object Detection">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2022/03/24/object-detection-20years-1/haar.png">
 
-<link rel="canonical" href="http://example.com/2022/03/24/object-detection-20years-1/">
+<link rel="canonical" href="http://example.com/2022/05/27/bceloss/">
 
 
 <script id="page-configurations">
@@ -52,7 +46,7 @@
   };
 </script>
 
-  <title>Object Detection (1): VJ Detector与积分图像 | RenTianhe's Blog</title>
+  <title>Detectron2 Learning Notes(8): BCELoss | RenTianhe's Blog</title>
   
 
 
@@ -183,7 +177,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/24/object-detection-20years-1/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/27/bceloss/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -196,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Object Detection (1): VJ Detector与积分图像
+          Detectron2 Learning Notes(8): BCELoss
         </h1>
 
         <div class="post-meta">
@@ -205,16 +199,10 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2022-03-24 20:56:01" itemprop="dateCreated datePublished" datetime="2022-03-24T20:56:01+08:00">2022-03-24</time>
+              <time title="Created: 2022-05-27 13:12:18 / Modified: 15:18:06" itemprop="dateCreated datePublished" datetime="2022-05-27T13:12:18+08:00">2022-05-27</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-05-03 18:22:21" itemprop="dateModified" datetime="2022-05-03T18:22:21+08:00">2022-05-03</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -238,7 +226,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.8k</span>
+              <span>2.3k</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
@@ -257,95 +245,40 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>本文为理解最早期一篇人脸实时检测器(VJ Detector)的相关笔记</p>
+        <p>本文介绍了深度学习中常用的BCELoss, CrossEntropy等损失函数~</p>
 <span id="more"></span>
-<h2 id="Contents">Contents</h2>
+<h2 id="Contents-2">Contents</h2>
 <ul>
 <li><a href="#contents">Contents</a>
 <ul>
-<li><a href="#vj-framework">VJ Framework</a>
-<ul>
-<li><a href="#overview">Overview</a></li>
-<li><a href="#detection-pipeline">Detection pipeline</a></li>
-<li><a href="#training-pipeline">Training pipeline</a></li>
-</ul>
-</li>
-<li><a href="#feature">Feature</a></li>
-<li><a href="#%E7%89%B9%E5%BE%81%E7%A7%AF%E5%88%86%E5%9B%BE%E5%8A%A0%E9%80%9F%E8%AE%A1%E7%AE%97haar%E7%89%B9%E5%BE%81">特征积分图加速计算Haar特征</a></li>
+<li><a href="#%E4%BA%8C%E5%88%86%E7%B1%BBloss">二分类Loss</a></li>
+<li><a href="#nnbceloss">nn.BCELoss</a></li>
+<li><a href="#nnbcewithlogitsloss">nn.BCEWithLogitsLoss</a></li>
 </ul>
 </li>
 <li><a href="#reference">Reference</a></li>
 </ul>
-<h3 id="VJ-Framework">VJ Framework</h3>
-<h4 id="Overview">Overview</h4>
-<p>VJ Detector全称为: Viola-Joines Detector, 是早期实时人脸检测的一种方法, 其主要的贡献有以下几个方面:</p>
+<h3 id="二分类Loss">二分类Loss</h3>
+<p>假设在二分类的情况下: 我们的模型输出的logits往往为一个数, 经过sigmoid后得到一个输出作为预测为正类的概率<code>p</code>, 我们的标签仅仅有两个, 其中<code>y=1</code>表示正类, <code>y=0</code>表示负类, 我们的Loss可以写成以下形式:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Loss = -(y * log(p) + (<span class="number">1</span> - y) * log(<span class="number">1</span> - p))</span><br></pre></td></tr></table></figure>
 <ul>
-<li>Feature: <strong>Haar-based</strong> feature</li>
-<li>Learning algorithm: <strong>AdaBoost</strong></li>
-<li><strong>Attentional Cascade</strong></li>
+<li>当<code>y=1</code>的时候, 计算公式变为<code>-log(p)</code>, 意味着P约接近1, Loss则越小</li>
+<li>当<code>y=0</code>的时候计算公式变为<code>-log(1-p)</code>, 意味着P约接近1, Loss则越大</li>
+<li>这里的<code>log</code>一般取的是<code>ln</code></li>
 </ul>
-<h4 id="Detection-pipeline">Detection pipeline</h4>
-<p>对检测的流程作大致的梳理: 输入一张图片, 输出一系列框, 选中图片中所有被检测到的目标</p>
+<h3 id="nn-BCELoss">nn.BCELoss</h3>
+<p>BCELoss常常用于多图片多标签分类, 如果我们需要对3张图片分三个类的话, 会输出一个3x3的tensor, 其中每一行表示一张图片输出的logits, 我们首先会通过sigmoid函数, 将每个值给归一化到(0, 1)之间:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">output_logits = torch.randn(<span class="number">3</span>, <span class="number">3</span>).sigmoid()</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>output_logits</span><br><span class="line">tensor([[<span class="number">0.5358</span>, <span class="number">0.6170</span>, <span class="number">0.7414</span>],</span><br><span class="line">        [<span class="number">0.8559</span>, <span class="number">0.4567</span>, <span class="number">0.0933</span>],</span><br><span class="line">        [<span class="number">0.5976</span>, <span class="number">0.4639</span>, <span class="number">0.6349</span>]])</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 假设我们的target为:</span></span><br><span class="line">target = torch.Tensor([[<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>],</span><br><span class="line">                       [<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>],</span><br><span class="line">                       [<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>]])</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 最后可以用BCELoss计算出来这一组的总Loss</span></span><br><span class="line">loss_function = nn.BCELoss()</span><br><span class="line">loss = loss_function(output_logits, target)</span><br><span class="line"><span class="built_in">print</span>(loss)</span><br></pre></td></tr></table></figure>
+<p>主要的计算方式如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 对于第一张图输出的logits和targets</span></span><br><span class="line">logits = [<span class="number">0.5358</span>, <span class="number">0.6170</span>, <span class="number">0.7414</span>]</span><br><span class="line">target = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算BCELoss</span></span><br><span class="line">loss = <span class="number">0</span>*ln(<span class="number">0.5358</span>) + (<span class="number">1</span>-<span class="number">0</span>)*ln(<span class="number">1</span>-<span class="number">0.5358</span>) + <span class="number">1</span>*ln(<span class="number">0.6170</span>) + (<span class="number">1</span>-<span class="number">1</span>)*ln(<span class="number">1</span>-<span class="number">0.6170</span>) + <span class="number">1</span>*ln(<span class="number">0.7414</span>) + (<span class="number">1</span>-<span class="number">1</span>)*ln(<span class="number">1</span>-<span class="number">0.7414</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="nn-BCEWithLogitsLoss">nn.BCEWithLogitsLoss</h3>
+<p><code>nn.BCEWithLogitsLoss</code>其实就是把<code>logits.sigmoid() + BCELoss</code>整合为一步, 我们用同样的输出来验证一下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torch.nn.functional <span class="keyword">as</span> F</span><br><span class="line"></span><br><span class="line">output_logits = torch.Tensor([[<span class="number">0.5358</span>, <span class="number">0.6170</span>, <span class="number">0.7414</span>],</span><br><span class="line">                              [<span class="number">0.8559</span>, <span class="number">0.4567</span>, <span class="number">0.0933</span>],</span><br><span class="line">                              [<span class="number">0.5976</span>, <span class="number">0.4639</span>, <span class="number">0.6349</span>]])</span><br><span class="line">target = torch.Tensor([[<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>],</span><br><span class="line">                       [<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>],</span><br><span class="line">                       [<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>]])</span><br><span class="line"></span><br><span class="line">bce = nn.BCELoss()</span><br><span class="line">loss = bce(output_logits.sigmoid(), target)</span><br><span class="line"><span class="built_in">print</span>(loss)  <span class="comment"># tensor(0.7153)</span></span><br><span class="line"></span><br><span class="line">bce_with_logits = nn.BCEWithLogitsLoss()</span><br><span class="line">loss = bce_with_logits(output_logits, target)</span><br><span class="line"><span class="built_in">print</span>(loss)  <span class="comment"># tensor(0.7153)</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(output_logits.sigmoid())</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor([[<span class="number">0.6308</span>, <span class="number">0.6495</span>, <span class="number">0.6773</span>],</span><br><span class="line">            [<span class="number">0.7018</span>, <span class="number">0.6122</span>, <span class="number">0.5233</span>],</span><br><span class="line">            [<span class="number">0.6451</span>, <span class="number">0.6139</span>, <span class="number">0.6536</span>]])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 也可以调用functional的接口, reduction=&quot;mean&quot; 表示对结果的loss求均值</span></span><br><span class="line">loss = F.binary_cross_entropy_with_logits(output_logits, target, reduction=<span class="string">&quot;mean&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(loss)  <span class="comment"># tensor(0.7153)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># reduction = &quot;sum&quot; 表示对最后的结果求和</span></span><br><span class="line">loss = F.binary_cross_entropy_with_logits(output_logits, target, reduction=<span class="string">&quot;sum&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(loss)  <span class="comment"># tensor(6.4379)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># reduction = &quot;none&quot; 的话返回最后的结果矩阵</span></span><br><span class="line">loss = F.binary_cross_entropy_with_logits(output_logits, target, reduction=<span class="string">&quot;none&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(loss)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor([[<span class="number">0.9965</span>, <span class="number">0.4315</span>, <span class="number">0.3896</span>],</span><br><span class="line">            [<span class="number">1.2100</span>, <span class="number">0.9473</span>, <span class="number">0.6476</span>],</span><br><span class="line">            [<span class="number">0.4383</span>, <span class="number">0.9518</span>, <span class="number">0.4253</span>]])</span><br><span class="line"><span class="comment"># 0.9965 = -(0*ln(0.6308) + (1-0)*ln(1-0.6308))</span></span><br></pre></td></tr></table></figure>
+<h2 id="Reference-2">Reference</h2>
 <ul>
-<li>图片预处理:
-<ul>
-<li>降采样: 针对比较大的原图, 进行Resize操作, (1000 * 1000) 的图Resize到 (500 * 500)</li>
-<li>像素 intensity 压缩: 针对3通道RGB图片, <strong>压缩为1通道</strong></li>
-</ul>
-</li>
-<li>特征预处理:
-<ul>
-<li>计算出待检测图片的 <strong>Integral Image</strong>, 极大的加速检测效率</li>
-</ul>
-</li>
-<li>滑窗检测:
-<ul>
-<li>首先以基础检测尺寸 (训练的时候用24*24) 在待检测图片上逐次滑过所有位置 (同时沿X和Y轴), 在所有窗口上判断是否为目标, 并且会<strong>逐渐放大检测窗口尺寸</strong> (比如每次扩大1.5倍) 完成<strong>各个尺寸下</strong>的图片检测. 滑窗方法把检测问题转换为了<strong>二分类问题</strong>(判断窗口里是否有物体), 虽然极大简化了问题, 但是需要识别的窗口数量巨大</li>
-</ul>
-</li>
-<li>图片检测:
-<ul>
-<li>滑窗的过程中对每个窗口都需要检测, 可以利用 Attentional Cascade 结构加速检测流程, 对于明显不是检测的窗口立即拒绝, 而对于很像存在目标的窗口逐渐地使用更多计算去判断, 并且检测过程中用到的特征是已经计算并存储好的一个中间特征(Integral Image), 利用<strong>积分图像</strong>方法, 在后续会介绍, 所以可以对特征进行快速计算, 并且 Cascade 基础是 <strong>AdaBoost</strong>，而 AdaBoost 基础是 <strong>Decision Stump</strong>，所以执行效率非常高</li>
-</ul>
-</li>
-<li>检测结果合并
-<ul>
-<li>所有 positive 检测窗口进行合并</li>
-</ul>
-</li>
-</ul>
-<h4 id="Training-pipeline">Training pipeline</h4>
-<p>基于Adaboost的Cascade结构模型: 训练目标位输入一张图片, 确认这个图片是否是所检测的目标, 简单转换为二分类问题</p>
-<ul>
-<li>确认检测窗口尺寸: 原文 24 * 24, 这个尺寸也是后续滑窗检测的基础目标窗口 size, 所以训练的时候也要用这个size</li>
-<li>正样本: 数千张到万张标准size的目标物体小图</li>
-<li>负样本: 各种风景图中切出来的小图</li>
-<li>Cascade 训练: 逐层训练出 Cascade 结构, 每层是 AdaBoost: 每一层训练结束都要为下一层准备出当前结构下无法区分的负样本</li>
-<li>输出 Cascade 模型的所有参数, 供检测流程直接使用</li>
-</ul>
-<h3 id="Feature">Feature</h3>
-<p>特征提取使用了Haar特征: 因为只使用24*24共576个像素点是不够的, 利用haar可以提取到近乎162336个特征, 可以充分表达这张图片上的完整信息, haar特征是用不同的模板, 如下图所示:</p>
-<img src="/2022/03/24/object-detection-20years-1/haar.png" class>
-<p>特征值的计算为: 黑色区域内的<strong>像素值之和</strong> <strong>减去</strong> 白色区域内的<strong>像素值之和</strong>, 可以有效挖掘出一些边缘特征等</p>
-<p>大部分的Haar特征是没有意义的, 但是AdaBoost可以将少数有效的特征挖掘出来, 如下图所示:</p>
-<img src="/2022/03/24/object-detection-20years-1/haar_adaboost.png" class>
-<p>模型通过眼睛这一位置的<strong>显著对比</strong>, 来判断是否为人脸</p>
-<p>Haar特征同时具备 <strong>缩放不变形 (scaling invariability)</strong>, 意味着当检测窗口放大的时候, Haar模板对应的黑白区域可以按照一致的比例扩大, 所以Haar特征的意义不变. 因为在实际的检测当中, 不仅要对训练时使用的 24 * 24 的size进行检测, 还要对 24 * 24, 48 * 48, 96 * 96等不同size进行检测, 只需要对Haar的窗口等比例放大, 就可以<strong>近似表达出类似的特征提取效果</strong></p>
-<h3 id="特征积分图加速计算Haar特征">特征积分图加速计算Haar特征</h3>
-<p>特征积分图由待检测的图片生成, 大小与原待检测的图片一致, 但是其中每个点的值为<strong>该点与左上角的点围成的矩形里的值的和</strong></p>
-<img src="/2022/03/24/object-detection-20years-1/integral_image_1.png" class>
-<p>使用积分图, 计算任意大小rectangle范围内的像素和变得十分简单, 举例如下:</p>
-<img src="/2022/03/24/object-detection-20years-1/integral_image_2.png" class>
-<p>我需要计算<strong>D区域内</strong>的像素和, 则可以用 <strong>(4 - 2 - 3 + 1)</strong>, 4点的值减去2和3点的值加上1点的值</p>
-<p>利用积分图的特点, 可以<strong>加速计算Haar特征</strong>:</p>
-<img src="/2022/03/24/object-detection-20years-1/intergral_image_3.png" class>
-<p>例如要计算B和A之间的Haar特征, 则可以用以下计算方式</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="number">4</span> - <span class="number">3</span> - <span class="number">2</span> + <span class="number">1</span>) - (<span class="number">6</span> - <span class="number">5</span> - <span class="number">4</span> + <span class="number">3</span>)</span><br></pre></td></tr></table></figure>
-<h2 id="Reference">Reference</h2>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/38056144">人脸 Haar 特征快速检测及其特征计算</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/Cdd2xd/article/details/77343406">VJ框架 与 人脸检测/物体检测 详解</a></li>
-<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/carson2005/article/details/8094966">积分图理解</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_22210253/article/details/85222093">Pytorch详解BCELoss和BCEWithLogitsLoss</a></li>
 </ul>
 
     </div>
@@ -365,13 +298,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/03/07/SSLearning-1/" rel="prev" title="Self-Supervised Learning(1): 自监督学习入门">
-      <i class="fa fa-chevron-left"></i> Self-Supervised Learning(1): 自监督学习入门
+    <a href="/2022/05/26/detectron2-focal-loss/" rel="prev" title="Detectron2 Learning Notes(7): Focal Loss ">
+      <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(7): Focal Loss 
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2022/03/27/weight-decay/" rel="next" title="如何理解weight decay?">
-      如何理解weight decay? <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -430,7 +360,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#VJ-Framework"><span class="nav-number">1.1.</span> <span class="nav-text">VJ Framework</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Overview"><span class="nav-number">1.1.1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Detection-pipeline"><span class="nav-number">1.1.2.</span> <span class="nav-text">Detection pipeline</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Training-pipeline"><span class="nav-number">1.1.3.</span> <span class="nav-text">Training pipeline</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Feature"><span class="nav-number">1.2.</span> <span class="nav-text">Feature</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E5%BE%81%E7%A7%AF%E5%88%86%E5%9B%BE%E5%8A%A0%E9%80%9F%E8%AE%A1%E7%AE%97Haar%E7%89%B9%E5%BE%81"><span class="nav-number">1.3.</span> <span class="nav-text">特征积分图加速计算Haar特征</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-2"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E5%88%86%E7%B1%BBLoss"><span class="nav-number">1.1.</span> <span class="nav-text">二分类Loss</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nn-BCELoss"><span class="nav-number">1.2.</span> <span class="nav-text">nn.BCELoss</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nn-BCEWithLogitsLoss"><span class="nav-number">1.3.</span> <span class="nav-text">nn.BCEWithLogitsLoss</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference-2"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
