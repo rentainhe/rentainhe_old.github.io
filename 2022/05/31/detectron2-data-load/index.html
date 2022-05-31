@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文主要介绍了detectron2里的数据加载逻辑~">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Detectron2 Learning Notes(11): Data Load">
+<meta property="og:url" content="http://example.com/2022/05/31/detectron2-data-load/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文主要介绍了detectron2里的数据加载逻辑~">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-05-31T03:58:23.000Z">
+<meta property="article:modified_time" content="2022-05-31T05:08:29.830Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Detectron2">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/05/31/detectron2-data-load/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Detectron2 Learning Notes(11): Data Load | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">52</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/31/detectron2-data-load/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Detectron2 Learning Notes(11): Data Load
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-05-31 11:58:23 / Modified: 13:08:29" itemprop="dateCreated datePublished" datetime="2022-05-31T11:58:23+08:00">2022-05-31</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Detectron2/" itemprop="url" rel="index"><span itemprop="name">Detectron2</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>4.4k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>4 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要介绍了detectron2里的数据加载逻辑~</p>
+<span id="more"></span>
+<h2 id="Contents-3">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a></li>
+<li><a href="#%E6%95%B4%E4%BD%93%E9%80%BB%E8%BE%91">整体逻辑</a>
+<ul>
+<li><a href="#get_detection_dataset_dicts">get_detection_dataset_dicts</a></li>
+</ul>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h2 id="整体逻辑">整体逻辑</h2>
+<p>这是比较早版本detectron2下的build_loader实现, 其整体逻辑如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">build_detection_train_loader</span>(<span class="params">cfg, mapper=<span class="literal">None</span></span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    A data loader is created by the following steps:</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    1. Use the dataset names in config to query :class:`DatasetCatalog`, and obtain a list of dicts.</span></span><br><span class="line"><span class="string">    2. Start workers to work on the dicts. Each worker will:</span></span><br><span class="line"><span class="string">      * Map each metadata dict into another format to be consumed by the model.</span></span><br><span class="line"><span class="string">      * Batch them by simply putting dicts into a list.</span></span><br><span class="line"><span class="string">    The batched ``list[mapped_dict]`` is what this dataloader will return.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        cfg (CfgNode): the config</span></span><br><span class="line"><span class="string">        mapper (callable): a callable which takes a sample (dict) from dataset and</span></span><br><span class="line"><span class="string">            returns the format to be consumed by the model.</span></span><br><span class="line"><span class="string">            By default it will be `DatasetMapper(cfg, True)`.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        a torch DataLoader object</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 获得dataset_dicts</span></span><br><span class="line">    dataset_dicts = get_detection_dataset_dicts(</span><br><span class="line">        cfg.DATASETS.TRAIN,</span><br><span class="line">        filter_empty=<span class="literal">True</span>,</span><br><span class="line">        min_keypoints=cfg.MODEL.ROI_KEYPOINT_HEAD.MIN_KEYPOINTS_PER_IMAGE</span><br><span class="line">        <span class="keyword">if</span> cfg.MODEL.KEYPOINT_ON</span><br><span class="line">        <span class="keyword">else</span> <span class="number">0</span>,</span><br><span class="line">        proposal_files=cfg.DATASETS.PROPOSAL_FILES_TRAIN <span class="keyword">if</span> cfg.MODEL.LOAD_PROPOSALS <span class="keyword">else</span> <span class="literal">None</span>,</span><br><span class="line">    )</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 将dataset_dicts转化成torch.utils.data.Dataset</span></span><br><span class="line">    dataset = DatasetFromList(dataset_dicts, copy=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 进一步转化成MapDataset，每次读取数据时都会调用mapper来对dict进行解析</span></span><br><span class="line">    <span class="keyword">if</span> mapper <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        mapper = DatasetMapper(cfg, <span class="literal">True</span>)</span><br><span class="line">    dataset = MapDataset(dataset, mapper)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 采样器</span></span><br><span class="line">    sampler_name = cfg.DATALOADER.SAMPLER_TRAIN</span><br><span class="line">    <span class="keyword">if</span> sampler_name == <span class="string">&quot;TrainingSampler&quot;</span>:</span><br><span class="line">        sampler = samplers.TrainingSampler(<span class="built_in">len</span>(dataset))</span><br><span class="line">        ...</span><br><span class="line">    batch_sampler = build_batch_data_sampler(</span><br><span class="line">        sampler, images_per_worker, group_bin_edges, aspect_ratios</span><br><span class="line">    )</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 数据迭代器 data_loader</span></span><br><span class="line">    data_loader = torch.utils.data.DataLoader(</span><br><span class="line">        dataset,</span><br><span class="line">        num_workers=cfg.DATALOADER.NUM_WORKERS,</span><br><span class="line">        batch_sampler=batch_sampler,</span><br><span class="line">        collate_fn=trivial_batch_collator,</span><br><span class="line">        worker_init_fn=worker_init_reset_seed,</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span> data_loader</span><br></pre></td></tr></table></figure>
+<h3 id="get-detection-dataset-dicts">get_detection_dataset_dicts</h3>
+<p>在<code>build_detection_train_loader</code>的第一步是调用<code>get_detection_dataset_dicts</code>, 这个方法需要传入几个参数:</p>
+<ul>
+<li><code>name</code>: a dataset name or a list of dataset names</li>
+<li><code>filter_empty</code>: 过滤掉没有instance / annotations的images</li>
+</ul>
+<p>其他几个参数暂时不对其进行了解</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_detection_dataset_dicts</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    names,</span></span></span><br><span class="line"><span class="params"><span class="function">    filter_empty=<span class="literal">True</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    min_keypoints=<span class="number">0</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    proposal_files=<span class="literal">None</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    check_consistency=<span class="literal">True</span>,</span></span></span><br><span class="line"><span class="params"><span class="function"></span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Load and prepare dataset dicts for instance detection/segmentation and semantic segmentation.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        names (str or list[str]): a dataset name or a list of dataset names</span></span><br><span class="line"><span class="string">        filter_empty (bool): whether to filter out images without instance annotations</span></span><br><span class="line"><span class="string">        min_keypoints (int): filter out images with fewer keypoints than</span></span><br><span class="line"><span class="string">            `min_keypoints`. Set to 0 to do nothing.</span></span><br><span class="line"><span class="string">        proposal_files (list[str]): if given, a list of object proposal files</span></span><br><span class="line"><span class="string">            that match each dataset in `names`.</span></span><br><span class="line"><span class="string">        check_consistency (bool): whether to check if datasets have consistent metadata.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        list[dict]: a list of dicts following the standard dataset dict format.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 判断传入的name是否为str, 如果是一个str的话则转换为list</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">isinstance</span>(names, <span class="built_in">str</span>):</span><br><span class="line">        names = [names]</span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">len</span>(names), names</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 如果传入多个dataset, 则组织成一个list</span></span><br><span class="line">    dataset_dicts = [DatasetCatalog.get(dataset_name) <span class="keyword">for</span> dataset_name <span class="keyword">in</span> names]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">isinstance</span>(dataset_dicts[<span class="number">0</span>], torchdata.Dataset):</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(dataset_dicts) &gt; <span class="number">1</span>:</span><br><span class="line">            <span class="comment"># ConcatDataset does not work for iterable style dataset.</span></span><br><span class="line">            <span class="comment"># We could support concat for iterable as well, but it&#x27;s often</span></span><br><span class="line">            <span class="comment"># not a good idea to concat iterables anyway.</span></span><br><span class="line">            <span class="keyword">return</span> torchdata.ConcatDataset(dataset_dicts)</span><br><span class="line">        <span class="keyword">return</span> dataset_dicts[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> dataset_name, dicts <span class="keyword">in</span> <span class="built_in">zip</span>(names, dataset_dicts):</span><br><span class="line">        <span class="keyword">assert</span> <span class="built_in">len</span>(dicts), <span class="string">&quot;Dataset &#x27;&#123;&#125;&#x27; is empty!&quot;</span>.<span class="built_in">format</span>(dataset_name)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> proposal_files <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">assert</span> <span class="built_in">len</span>(names) == <span class="built_in">len</span>(proposal_files)</span><br><span class="line">        <span class="comment"># load precomputed proposals from proposal files</span></span><br><span class="line">        dataset_dicts = [</span><br><span class="line">            load_proposals_into_dataset(dataset_i_dicts, proposal_file)</span><br><span class="line">            <span class="keyword">for</span> dataset_i_dicts, proposal_file <span class="keyword">in</span> <span class="built_in">zip</span>(dataset_dicts, proposal_files)</span><br><span class="line">        ]</span><br><span class="line"></span><br><span class="line">    dataset_dicts = <span class="built_in">list</span>(itertools.chain.from_iterable(dataset_dicts))</span><br><span class="line"></span><br><span class="line">    has_instances = <span class="string">&quot;annotations&quot;</span> <span class="keyword">in</span> dataset_dicts[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">if</span> filter_empty <span class="keyword">and</span> has_instances:</span><br><span class="line">        dataset_dicts = filter_images_with_only_crowd_annotations(dataset_dicts)</span><br><span class="line">    <span class="keyword">if</span> min_keypoints &gt; <span class="number">0</span> <span class="keyword">and</span> has_instances:</span><br><span class="line">        dataset_dicts = filter_images_with_few_keypoints(dataset_dicts, min_keypoints)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> check_consistency <span class="keyword">and</span> has_instances:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            class_names = MetadataCatalog.get(names[<span class="number">0</span>]).thing_classes</span><br><span class="line">            check_metadata_consistency(<span class="string">&quot;thing_classes&quot;</span>, names)</span><br><span class="line">            print_instances_class_histogram(dataset_dicts, class_names)</span><br><span class="line">        <span class="keyword">except</span> AttributeError:  <span class="comment"># class names are not available for this dataset</span></span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">len</span>(dataset_dicts), <span class="string">&quot;No valid data found in &#123;&#125;.&quot;</span>.<span class="built_in">format</span>(<span class="string">&quot;,&quot;</span>.join(names))</span><br><span class="line">    <span class="keyword">return</span> dataset_dicts</span><br></pre></td></tr></table></figure>
+<h2 id="Reference-2">Reference</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/88149772">Detectron2源码阅读笔记-（三）Dataset pipeline</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Detectron2/" rel="tag"># Detectron2</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/30/detectron2-instances/" rel="prev" title="Detectron2 Learning Notes(10): Instances">
+      <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(10): Instances
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-3"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E9%80%BB%E8%BE%91"><span class="nav-number">2.</span> <span class="nav-text">整体逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#get-detection-dataset-dicts"><span class="nav-number">2.1.</span> <span class="nav-text">get_detection_dataset_dicts</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference-2"><span class="nav-number">3.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">52</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">191k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">2:54</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

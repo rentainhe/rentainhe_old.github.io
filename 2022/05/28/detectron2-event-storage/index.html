@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文介绍了detectron2中的EventStorage用法, 以及一些相关的python基础语法知识, 包括以下几个部分:  @property装饰器 @*.setter装饰器 __enter__ &amp; __exit__ @contextmanager简化上下文管理器操作">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Detectron2 Learning Notes(9): EventStorage">
+<meta property="og:url" content="http://example.com/2022/05/28/detectron2-event-storage/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文介绍了detectron2中的EventStorage用法, 以及一些相关的python基础语法知识, 包括以下几个部分:  @property装饰器 @*.setter装饰器 __enter__ &amp; __exit__ @contextmanager简化上下文管理器操作">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-05-28T06:49:08.000Z">
+<meta property="article:modified_time" content="2022-05-28T12:46:45.588Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Detectron2">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/05/28/detectron2-event-storage/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Detectron2 Learning Notes(9): EventStorage | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">52</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/28/detectron2-event-storage/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Detectron2 Learning Notes(9): EventStorage
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-05-28 14:49:08 / Modified: 20:46:45" itemprop="dateCreated datePublished" datetime="2022-05-28T14:49:08+08:00">2022-05-28</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Detectron2/" itemprop="url" rel="index"><span itemprop="name">Detectron2</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>8.4k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>8 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文介绍了detectron2中的<code>EventStorage</code>用法, 以及一些相关的python基础语法知识, 包括以下几个部分:</p>
+<ul>
+<li>@property装饰器</li>
+<li>@*.setter装饰器</li>
+<li><code>__enter__</code> &amp; <code>__exit__</code></li>
+<li>@contextmanager简化上下文管理器操作</li>
+</ul>
+<span id="more"></span>
+<h2 id="Contents-2">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#python-syntax-learning">Python Syntax Learning</a>
+<ul>
+<li><a href="#property%E8%A3%85%E9%A5%B0%E5%99%A8">@property装饰器</a></li>
+<li><a href="#setter%E8%A3%85%E9%A5%B0%E5%99%A8">@*.setter装饰器</a></li>
+<li><a href="#enter--exit--%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86%E5%99%A8"><strong>enter</strong> &amp; <strong>exit</strong> &amp; 上下文管理器</a></li>
+<li><a href="#contextmanager">@contextmanager</a></li>
+</ul>
+</li>
+<li><a href="#eventstorage">EventStorage</a>
+<ul>
+<li><a href="#historybuffer">HistoryBuffer</a></li>
+<li><a href="#eventstorage%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96">EventStorage的初始化</a></li>
+<li><a href="#eventstorage%E7%9A%84%E5%87%A0%E4%B8%AA%E5%86%85%E7%BD%AE%E6%96%B9%E6%B3%95">EventStorage的几个内置方法:</a></li>
+</ul>
+</li>
+<li><a href="#detectron2-writer%E7%9A%84%E6%95%B4%E4%BD%93%E6%B5%81%E7%A8%8B">Detectron2 Writer的整体流程</a></li>
+</ul>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h3 id="Python-Syntax-Learning">Python Syntax Learning</h3>
+<h4 id="property装饰器">@property装饰器</h4>
+<p><code>@property</code>是python中的一种装饰器,有以下两个使用场景:</p>
+<ul>
+<li>修饰方法: 可以将<code>function</code>转换为相同名称的<code>只读属性</code></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataSet</span>(<span class="params"><span class="built_in">object</span></span>):</span></span><br><span class="line"><span class="meta">  @property</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">method_with_property</span>(<span class="params">self</span>):</span> <span class="comment">##含有@property</span></span><br><span class="line">      <span class="keyword">return</span> <span class="number">15</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">method_without_property</span>(<span class="params">self</span>):</span> <span class="comment">##不含@property</span></span><br><span class="line">      <span class="keyword">return</span> <span class="number">15</span></span><br><span class="line"></span><br><span class="line">l = DataSet()</span><br><span class="line"><span class="built_in">print</span>(l.method_with_property) <span class="comment"># 加了@property后，可以用调用属性的形式来调用方法,后面不需要加()。</span></span><br><span class="line"><span class="built_in">print</span>(l.method_without_property())  <span class="comment">#没有加@property , 必须使用正常的调用方法的形式，即在后面加()</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>与所定义的属性配合使用，这样可以防止属性被修改</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataSet</span>(<span class="params"><span class="built_in">object</span></span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        self._images = <span class="number">1</span></span><br><span class="line">        self._labels = <span class="number">2</span> <span class="comment">#定义属性的名称</span></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">images</span>(<span class="params">self</span>):</span> <span class="comment">#方法加入@property后，这个方法相当于一个属性，这个属性可以让用户进行使用，而且用户有没办法随意修改。</span></span><br><span class="line">        <span class="keyword">return</span> self._images </span><br><span class="line">    </span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">labels</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self._labels</span><br><span class="line">l = DataSet()</span><br><span class="line"><span class="comment">#用户进行属性调用的时候，直接调用images即可，而不用知道属性名_images，因此用户无法更改属性，从而保护了类的属性。</span></span><br><span class="line"><span class="built_in">print</span>(l.images) <span class="comment"># 加了@property后，可以用调用属性的形式来调用方法,后面不需要加()。</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>Addition: Python中的下划线的区别</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataSet</span>(<span class="params"><span class="built_in">object</span></span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        self.testA = <span class="number">0</span>  <span class="comment"># 无下划线, 都可以访问</span></span><br><span class="line">        self._testB = <span class="number">1</span>  <span class="comment"># 单下划线, 也可以通过 ._images 访问到, 但是原则上不希望这个变量被外界访问, 口头私有变量</span></span><br><span class="line">        self.__testC = <span class="number">2</span>  <span class="comment"># 不可以被外部访问, 只能内部访问</span></span><br><span class="line">    </span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">images</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self._testB </span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 可以通过property来访问到前双下划线的变量</span></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">images_v2</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self.__testC</span><br><span class="line">    </span><br><span class="line">d = DataSet()</span><br><span class="line"><span class="built_in">print</span>(d.images)  <span class="comment"># 1</span></span><br><span class="line"><span class="built_in">print</span>(d.images_v2)  <span class="comment"># 2</span></span><br></pre></td></tr></table></figure>
+<h4 id="setter装饰器">@*.setter装饰器</h4>
+<p>可以使用<code>@*.setter</code>装饰器对用property封装的属性添加一个赋值方法</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Data</span>(<span class="params"><span class="built_in">object</span></span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        self._data = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]</span><br><span class="line">    </span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">data</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self._data</span><br><span class="line"></span><br><span class="line"><span class="meta">    @data.setter</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">data</span>(<span class="params">self, value</span>):</span></span><br><span class="line">        self._data = value</span><br><span class="line"></span><br><span class="line">d = Data()</span><br><span class="line"><span class="comment"># 可以进行赋值操作</span></span><br><span class="line">d.data = <span class="number">1.0</span></span><br><span class="line"><span class="built_in">print</span>(d.data)  <span class="comment"># 1.0</span></span><br></pre></td></tr></table></figure>
+<h4 id="enter-exit-上下文管理器"><strong>enter</strong> &amp; <strong>exit</strong> &amp; 上下文管理器</h4>
+<p><code>__enter__</code>和<code>__exit__</code>与<code>with as</code>语句的关系紧密相连:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span>():</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__enter__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Enter!&quot;</span>)</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__exit__</span>(<span class="params">self, <span class="built_in">type</span>, value, trace</span>):</span></span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;Exit!&quot;</span>)</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">with</span> Test() <span class="keyword">as</span> f:       </span><br><span class="line">    <span class="comment"># 执行with as语句时，Test类中的__enter__函数会被调用</span></span><br><span class="line">    <span class="comment"># __enter__函数返回的对象作为 f</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;f:&quot;</span>, f)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Have a try!&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>以上语句的执行顺序如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1.</span> 执行<span class="keyword">with</span> <span class="keyword">as</span>, Test类中的__enter__会被调用, 打印 <span class="string">&quot;Enter!&quot;</span></span><br><span class="line"><span class="number">2.</span> __enter__函数返回的对象作为f，这里__enter__函数没有<span class="keyword">return</span>语句，默认返回<span class="literal">None</span>，因此f就是<span class="literal">None</span></span><br><span class="line"><span class="number">3.</span> 打印<span class="string">&quot;Have a try!&quot;</span></span><br><span class="line"><span class="number">4.</span> <span class="keyword">with</span> <span class="keyword">as</span>语句执行完毕后, __exit__函数会被调用, 打印<span class="string">&quot;Exit!&quot;</span></span><br></pre></td></tr></table></figure>
+<h4 id="contextmanager">@contextmanager</h4>
+<p>可以简化<code>__enter__</code>和<code>__exit__</code>的写法, 使用<code>@contextmanager</code>作为一个decorator, 用<code>yield</code>输出变量, 例如我们希望在执行某些代码段前后执行特定代码:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@contextmanager</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">tag</span>(<span class="params">name</span>):</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;&lt;%s&gt;&quot;</span> % name)</span><br><span class="line">    <span class="keyword">yield</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;&lt;/%s&gt;&quot;</span> % name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> tag(<span class="string">&quot;h1&quot;</span>):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;hello&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;world&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;h1&gt;</span><br><span class="line">hello</span><br><span class="line">world</span><br><span class="line">&lt;/h1&gt;</span><br></pre></td></tr></table></figure>
+<p>用<code>yield</code>输出变量的情况:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> contextlib <span class="keyword">import</span> contextmanager</span><br><span class="line"></span><br><span class="line"><span class="meta">@contextmanager</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">tag</span>(<span class="params">name</span>):</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;&lt;%s&gt;&quot;</span> % name)</span><br><span class="line">    <span class="keyword">yield</span> name</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;&lt;/%s&gt;&quot;</span> % name)</span><br><span class="line"></span><br><span class="line"><span class="keyword">with</span> tag(<span class="string">&quot;h1&quot;</span>) <span class="keyword">as</span> name:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;hello&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;yield name: &quot;</span>, name)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;world&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;h1&gt;</span><br><span class="line">hello</span><br><span class="line"><span class="keyword">yield</span> name:  h1</span><br><span class="line">world</span><br><span class="line">&lt;/h1&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="EventStorage">EventStorage</h3>
+<h4 id="HistoryBuffer">HistoryBuffer</h4>
+<p>主要的作用是存储一部分scalar values, 并自动计算这一系列数据的几个统计量:</p>
+<ul>
+<li><code>__init__(max_length)</code>: max_length控制这个HistoryBuffer最多存储的值的数量</li>
+<li><code>update(value, iteration)</code>: 传入value和iteration作为一个元组更新数据</li>
+<li><code>global_avg</code>: 全局平均, 包括已经从buffer中清除出去的历史数据</li>
+<li><code>median(window_size)</code>: <code>data[-window_size:]</code>的median值, <code>avg(window_size)</code>同理</li>
+<li><code>values</code>: 得到当前存储的所有数据</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HistoryBuffer</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Track a series of scalar values and provide access to smoothed values over a</span></span><br><span class="line"><span class="string">    window or the global average of the series.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, max_length: <span class="built_in">int</span> = <span class="number">1000000</span></span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            max_length: maximal number of values that can be stored in the</span></span><br><span class="line"><span class="string">                buffer. When the capacity of the buffer is exhausted, old</span></span><br><span class="line"><span class="string">                values will be removed.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        self._max_length: <span class="built_in">int</span> = max_length</span><br><span class="line">        self._data: <span class="type">List</span>[<span class="type">Tuple</span>[<span class="built_in">float</span>, <span class="built_in">float</span>]] = []  <span class="comment"># (value, iteration) pairs</span></span><br><span class="line">        self._count: <span class="built_in">int</span> = <span class="number">0</span></span><br><span class="line">        self._global_avg: <span class="built_in">float</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">update</span>(<span class="params">self, value: <span class="built_in">float</span>, iteration: <span class="type">Optional</span>[<span class="built_in">float</span>] = <span class="literal">None</span></span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Add a new scalar value produced at certain iteration. If the length</span></span><br><span class="line"><span class="string">        of the buffer exceeds self._max_length, the oldest element will be</span></span><br><span class="line"><span class="string">        removed from the buffer.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">if</span> iteration <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">            iteration = self._count</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(self._data) == self._max_length:</span><br><span class="line">            self._data.pop(<span class="number">0</span>)</span><br><span class="line">        self._data.append((value, iteration))</span><br><span class="line"></span><br><span class="line">        self._count += <span class="number">1</span></span><br><span class="line">        self._global_avg += (value - self._global_avg) / self._count</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">latest</span>(<span class="params">self</span>) -&gt; <span class="built_in">float</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Return the latest scalar value added to the buffer.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> self._data[-<span class="number">1</span>][<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">median</span>(<span class="params">self, window_size: <span class="built_in">int</span></span>) -&gt; <span class="built_in">float</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Return the median of the latest `window_size` values in the buffer.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> np.median([x[<span class="number">0</span>] <span class="keyword">for</span> x <span class="keyword">in</span> self._data[-window_size:]])</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">avg</span>(<span class="params">self, window_size: <span class="built_in">int</span></span>) -&gt; <span class="built_in">float</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Return the mean of the latest `window_size` values in the buffer.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> np.mean([x[<span class="number">0</span>] <span class="keyword">for</span> x <span class="keyword">in</span> self._data[-window_size:]])</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">global_avg</span>(<span class="params">self</span>) -&gt; <span class="built_in">float</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Return the mean of all the elements in the buffer. Note that this</span></span><br><span class="line"><span class="string">        includes those getting removed due to limited buffer storage.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> self._global_avg</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">values</span>(<span class="params">self</span>) -&gt; <span class="type">List</span>[<span class="type">Tuple</span>[<span class="built_in">float</span>, <span class="built_in">float</span>]]:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Returns:</span></span><br><span class="line"><span class="string">            list[(number, iteration)]: content of the current buffer.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> self._data</span><br></pre></td></tr></table></figure>
+<h4 id="EventStorage的初始化">EventStorage的初始化</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EventStorage</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    The user-facing class that provides metric storage functionalities.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    In the future we may add support for storing / logging other types of data if needed.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, start_iter=<span class="number">0</span></span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            start_iter (int): the iteration number to start with</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        self._history = defaultdict(HistoryBuffer)  <span class="comment"># 使用了defaultdict, 如果这个key不存在则默认初始化一个HistoryBuffer</span></span><br><span class="line">        self._smoothing_hints = &#123;&#125;</span><br><span class="line">        self._latest_scalars = &#123;&#125;</span><br><span class="line">        self._<span class="built_in">iter</span> = start_iter  <span class="comment"># iteration</span></span><br><span class="line">        self._current_prefix = <span class="string">&quot;&quot;</span></span><br><span class="line">        self._vis_data = []  <span class="comment"># 存储需要可视化的数据(image等)</span></span><br><span class="line">        self._histograms = []</span><br></pre></td></tr></table></figure>
+<h4 id="EventStorage的几个内置方法">EventStorage的几个内置方法:</h4>
+<ul>
+<li><code>put_image(img_name, img_tensor)</code>: 保存需要可视化的数据, 传入<code>img_name</code>, <code>img_tensor</code>并与当前的<code>_iter</code>一起作为一个元组保存至<code>_vis_data</code>中</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">put_image</span>(<span class="params">self, img_name, img_tensor</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Add an `img_tensor` associated with `img_name`, to be shown on</span></span><br><span class="line"><span class="string">    tensorboard.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        img_name (str): The name of the image to put into tensorboard.</span></span><br><span class="line"><span class="string">        img_tensor (torch.Tensor or numpy.array): An `uint8` or `float`</span></span><br><span class="line"><span class="string">            Tensor of shape `[channel, height, width]` where `channel` is</span></span><br><span class="line"><span class="string">            3. The image format should be RGB. The elements in img_tensor</span></span><br><span class="line"><span class="string">            can either have values in [0, 1] (float32) or [0, 255] (uint8).</span></span><br><span class="line"><span class="string">            The `img_tensor` will be visualized in tensorboard.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    self._vis_data.append((img_name, img_tensor, self._<span class="built_in">iter</span>))</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>put_scalar(name, value, smoothing_hint)</code></li>
+<li><code>put_scalars(*, smoothing_hint=True, **kwargs)</code></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">put_scalar</span>(<span class="params">self, name, value, smoothing_hint=<span class="literal">True</span></span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Add a scalar `value` to the `HistoryBuffer` associated with `name`.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        smoothing_hint (bool): a &#x27;hint&#x27; on whether this scalar is noisy and should be</span></span><br><span class="line"><span class="string">            smoothed when logged. The hint will be accessible through</span></span><br><span class="line"><span class="string">            :meth:`EventStorage.smoothing_hints`.  A writer may ignore the hint</span></span><br><span class="line"><span class="string">            and apply custom smoothing rule.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">            It defaults to True because most scalars we save need to be smoothed to</span></span><br><span class="line"><span class="string">            provide any useful signal.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    name = self._current_prefix + name</span><br><span class="line">    history = self._history[name]  <span class="comment"># 如果name不存在, 则会自动初始化一个HistoryBuffer</span></span><br><span class="line">    value = <span class="built_in">float</span>(value)</span><br><span class="line">    history.update(value, self._<span class="built_in">iter</span>)  <span class="comment"># 然后再对history进行update操作, 更新上这个值</span></span><br><span class="line">    self._latest_scalars[name] = (value, self._<span class="built_in">iter</span>)  <span class="comment"># 存放latest scalar</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 先不用care smooth_hint的作用</span></span><br><span class="line">    existing_hint = self._smoothing_hints.get(name)</span><br><span class="line">    <span class="keyword">if</span> existing_hint <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">assert</span> (</span><br><span class="line">            existing_hint == smoothing_hint</span><br><span class="line">        ), <span class="string">&quot;Scalar &#123;&#125; was put with a different smoothing_hint!&quot;</span>.<span class="built_in">format</span>(name)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        self._smoothing_hints[name] = smoothing_hint</span><br><span class="line"></span><br><span class="line"><span class="comment"># 存放多个scalars</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">put_scalars</span>(<span class="params">self, *, smoothing_hint=<span class="literal">True</span>, **kwargs</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Put multiple scalars from keyword arguments.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Examples:</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        storage.put_scalars(loss=my_loss, accuracy=my_accuracy, smoothing_hint=True)</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">for</span> k, v <span class="keyword">in</span> kwargs.items():</span><br><span class="line">        self.put_scalar(k, v, smoothing_hint=smoothing_hint)</span><br></pre></td></tr></table></figure>
+<h3 id="Detectron2-Writer的整体流程">Detectron2 Writer的整体流程</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># step1 ： 在Trainer中调用hooks 的 after_step() 方法</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Trainer</span>():</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">after_step</span>():</span></span><br><span class="line">        <span class="keyword">for</span> hook <span class="keyword">in</span> self.hooks():</span><br><span class="line">            hook.after_step()</span><br><span class="line"></span><br><span class="line"><span class="comment"># step2 ： 在 PeriodicWriter 这样的hook 的after_step() 中向各种目标输出日志信息</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PeriodicWriter</span>(<span class="params">HookBase</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self,writers: <span class="type">List</span>[EventWriter]</span>)</span></span><br><span class="line"><span class="function">        <span class="title">self</span>.<span class="title">_writers</span> = <span class="title">writers</span></span></span><br><span class="line"><span class="function">    <span class="title">def</span> <span class="title">after_step</span>():</span></span><br><span class="line">        <span class="keyword">for</span> writer <span class="keyword">in</span> self._writers：</span><br><span class="line">            writer.write()</span><br><span class="line"></span><br><span class="line"><span class="comment"># step 3: 对应到每个具体的输出任务，都会由某个具体的wrtier 来完成输出</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TensorboardXWriter</span>(<span class="params">EventWriter</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        ...</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">write</span>():</span></span><br><span class="line">        <span class="comment"># 在这里向tensorboard 输出信息</span></span><br><span class="line">        ...</span><br><span class="line">        </span><br></pre></td></tr></table></figure>
+<h2 id="Reference">Reference</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/64487092">python @property的介绍与使用</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/xhaimail/article/details/105042660?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-5-105042660-blog-121435911.pc_relevant_paycolumn_v3&amp;spm=1001.2101.3001.4242.4&amp;utm_relevant_index=8">Python 单下划线和双下划线的区别</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/flashBoxer/p/9664813.html">Python enter和exit的使用</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/473007925">【python】关于__enter__和__exit__函数</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/24709718">Python进阶: With语句和上下文管理器ContextManager</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.liaoxuefeng.com/wiki/1016959663602400/1115615597164000">contextlib</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Detectron2/" rel="tag"># Detectron2</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/27/bceloss/" rel="prev" title="Detectron2 Learning Notes(8): BCELoss">
+      <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(8): BCELoss
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/30/detectron2-instances/" rel="next" title="Detectron2 Learning Notes(10): Instances">
+      Detectron2 Learning Notes(10): Instances <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-2"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Python-Syntax-Learning"><span class="nav-number">1.1.</span> <span class="nav-text">Python Syntax Learning</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#property%E8%A3%85%E9%A5%B0%E5%99%A8"><span class="nav-number">1.1.1.</span> <span class="nav-text">@property装饰器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#setter%E8%A3%85%E9%A5%B0%E5%99%A8"><span class="nav-number">1.1.2.</span> <span class="nav-text">@*.setter装饰器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#enter-exit-%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86%E5%99%A8"><span class="nav-number">1.1.3.</span> <span class="nav-text">enter &amp; exit &amp; 上下文管理器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#contextmanager"><span class="nav-number">1.1.4.</span> <span class="nav-text">@contextmanager</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EventStorage"><span class="nav-number">1.2.</span> <span class="nav-text">EventStorage</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#HistoryBuffer"><span class="nav-number">1.2.1.</span> <span class="nav-text">HistoryBuffer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#EventStorage%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">1.2.2.</span> <span class="nav-text">EventStorage的初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#EventStorage%E7%9A%84%E5%87%A0%E4%B8%AA%E5%86%85%E7%BD%AE%E6%96%B9%E6%B3%95"><span class="nav-number">1.2.3.</span> <span class="nav-text">EventStorage的几个内置方法:</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Detectron2-Writer%E7%9A%84%E6%95%B4%E4%BD%93%E6%B5%81%E7%A8%8B"><span class="nav-number">1.3.</span> <span class="nav-text">Detectron2 Writer的整体流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">52</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">191k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">2:54</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

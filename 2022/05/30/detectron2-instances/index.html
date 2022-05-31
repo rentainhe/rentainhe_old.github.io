@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文主要介绍了Detectron2中的Instances类的主要功能:  Instances初始化 Instances的高级用法: to, cat等 Instances的基本用法: get, has, remove等">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Detectron2 Learning Notes(10): Instances">
+<meta property="og:url" content="http://example.com/2022/05/30/detectron2-instances/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文主要介绍了Detectron2中的Instances类的主要功能:  Instances初始化 Instances的高级用法: to, cat等 Instances的基本用法: get, has, remove等">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-05-30T04:35:56.000Z">
+<meta property="article:modified_time" content="2022-05-31T04:01:30.871Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Detectron2">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/05/30/detectron2-instances/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Detectron2 Learning Notes(10): Instances | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">52</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/05/30/detectron2-instances/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Detectron2 Learning Notes(10): Instances
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-05-30 12:35:56" itemprop="dateCreated datePublished" datetime="2022-05-30T12:35:56+08:00">2022-05-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-05-31 12:01:30" itemprop="dateModified" datetime="2022-05-31T12:01:30+08:00">2022-05-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Detectron2/" itemprop="url" rel="index"><span itemprop="name">Detectron2</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>5.5k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>5 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要介绍了<code>Detectron2</code>中的<code>Instances</code>类的主要功能:</p>
+<ul>
+<li>Instances初始化</li>
+<li>Instances的高级用法: <code>to</code>, <code>cat</code>等</li>
+<li>Instances的基本用法: <code>get</code>, <code>has</code>, <code>remove</code>等</li>
+</ul>
+<span id="more"></span>
+<h2 id="Contents-2">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#instances">Instances</a>
+<ul>
+<li><a href="#%E5%88%9D%E5%A7%8B%E5%8C%96">初始化</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+<li><a href="#advanced-usage">Advanced Usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Instances">Instances</h3>
+<p>主要的功能在这个class的docstring里有描述:</p>
+<ul>
+<li>represents <strong>a list of instances</strong> in an image</li>
+<li>stores the attributes of instances (e.g., boxes, masks, labels, scores) as “<strong>fields</strong>”.</li>
+<li>All fields must have the same <code>__len__</code> which is the number of instances</li>
+<li><code>non field</code> attributes of this classes are considered private</li>
+</ul>
+<p>主要就是存储实例的信息, 接下来我们来看这部分的源码:</p>
+<h4 id="初始化">初始化</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Instances</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, image_size: <span class="type">Tuple</span>[<span class="built_in">int</span>, <span class="built_in">int</span>], **kwargs: <span class="type">Any</span></span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            image_size (height, width): the spatial size of the image.</span></span><br><span class="line"><span class="string">            kwargs: fields to add to this `Instances`.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        self._image_size = image_size</span><br><span class="line">        self._fields: <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>] = &#123;&#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 调用set方法, 将新的属性添加到fields里</span></span><br><span class="line">        <span class="comment"># 并且保证传入的每个属性的len都相同</span></span><br><span class="line">        <span class="keyword">for</span> k, v <span class="keyword">in</span> kwargs.items():</span><br><span class="line">            self.<span class="built_in">set</span>(k, v)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">set</span>(<span class="params">self, name: <span class="built_in">str</span>, value: <span class="type">Any</span></span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Set the field named `name` to `value`.</span></span><br><span class="line"><span class="string">        The length of `value` must be the number of instances,</span></span><br><span class="line"><span class="string">        and must agree with other existing fields in this object.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        data_len = <span class="built_in">len</span>(value)</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(self._fields):</span><br><span class="line">            <span class="keyword">assert</span> (</span><br><span class="line">                <span class="built_in">len</span>(self) == data_len</span><br><span class="line">            ), <span class="string">&quot;Adding a field of length &#123;&#125; to a Instances of length &#123;&#125;&quot;</span>.<span class="built_in">format</span>(data_len, <span class="built_in">len</span>(self))</span><br><span class="line">        self._fields[name] = value</span><br></pre></td></tr></table></figure>
+<h4 id="Basic-Usage">Basic Usage</h4>
+<p>一些基本的Instances的类方法:</p>
+<ul>
+<li><code>has</code>: 判断是否包含某个field</li>
+<li><code>remove</code>: 移除某个field</li>
+<li><code>get</code>: 得到某个field</li>
+<li><code>get_fields</code>: 返回整个Instances中的所有fields, 是一个dict类型</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">has</span>(<span class="params">self, name: <span class="built_in">str</span></span>) -&gt; <span class="built_in">bool</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        bool: whether the field called `name` exists.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> name <span class="keyword">in</span> self._fields</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">remove</span>(<span class="params">self, name: <span class="built_in">str</span></span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Remove the field called `name`.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">del</span> self._fields[name]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get</span>(<span class="params">self, name: <span class="built_in">str</span></span>) -&gt; <span class="type">Any</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Returns the field called `name`.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> self._fields[name]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_fields</span>(<span class="params">self</span>) -&gt; <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        dict: a dict which maps names (str) to data of the fields</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Modifying the returned dict will modify this instance.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> self._fields</span><br></pre></td></tr></table></figure>
+<ul>
+<li>举几个例子说明一下基本方法的使用</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> detectron2.structures <span class="keyword">import</span> Instances</span><br><span class="line"></span><br><span class="line">x = Instances(image_size=(<span class="number">224</span>, <span class="number">224</span>), data=torch.randn(<span class="number">2</span>, <span class="number">2</span>), list_data=[<span class="number">0</span>, <span class="number">1</span>])</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(x.has(<span class="string">&quot;data&quot;</span>))</span><br><span class="line"><span class="built_in">print</span>(x.get(<span class="string">&quot;data&quot;</span>))</span><br><span class="line"><span class="built_in">print</span>(x.get_fields())</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="literal">True</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tensor([[-<span class="number">1.6359</span>, -<span class="number">0.8908</span>],</span><br><span class="line">            [-<span class="number">0.2056</span>,  <span class="number">1.1790</span>]])</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&#123;<span class="string">&#x27;data&#x27;</span>: tensor([[-<span class="number">0.7097</span>, -<span class="number">0.5182</span>],</span><br><span class="line">                    [-<span class="number">1.3776</span>,  <span class="number">1.0766</span>]]), </span><br><span class="line">     <span class="string">&#x27;list_data&#x27;</span>: [<span class="number">0</span>, <span class="number">1</span>]&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Advanced-Usage">Advanced Usage</h4>
+<ul>
+<li><code>to</code>: 对每个field都调用to方法, 类比于torch的to方法, 可以<code>to(&quot;cuda&quot;)</code></li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Tensor-like methods</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">to</span>(<span class="params">self, *args: <span class="type">Any</span>, **kwargs: <span class="type">Any</span></span>) -&gt; &quot;Instances&quot;:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        Instances: all fields are called with a `to(device)`, if the field has this method.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    ret = Instances(self._image_size)</span><br><span class="line">    <span class="keyword">for</span> k, v <span class="keyword">in</span> self._fields.items():</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">hasattr</span>(v, <span class="string">&quot;to&quot;</span>):</span><br><span class="line">            v = v.to(*args, **kwargs)</span><br><span class="line">        ret.<span class="built_in">set</span>(k, v)</span><br><span class="line">    <span class="keyword">return</span> ret</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>__getitem__</code>: 定义了可以通过索引操作得到Instances中的元素</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">__getitem__</span>(<span class="params">self, item: <span class="type">Union</span>[<span class="built_in">int</span>, <span class="built_in">slice</span>, torch.BoolTensor]</span>) -&gt; &quot;Instances&quot;:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        item: an index-like object and will be used to index all the fields.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        If `item` is a string, return the data in the corresponding field.</span></span><br><span class="line"><span class="string">        Otherwise, returns an `Instances` where all fields are indexed by `item`.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 如果传入的是一个单个的index的话, 需要判断是否out of range</span></span><br><span class="line">    <span class="comment"># 如果传入的是一个list index的话会转换为slice</span></span><br><span class="line">    <span class="comment"># x[:100], item = slice(0, 100, None)</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">type</span>(item) == <span class="built_in">int</span>:</span><br><span class="line">        <span class="keyword">if</span> item &gt;= <span class="built_in">len</span>(self) <span class="keyword">or</span> item &lt; -<span class="built_in">len</span>(self):</span><br><span class="line">            <span class="keyword">raise</span> IndexError(<span class="string">&quot;Instances index out of range!&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            item = <span class="built_in">slice</span>(item, <span class="literal">None</span>, <span class="built_in">len</span>(self))</span><br><span class="line"></span><br><span class="line">    ret = Instances(self._image_size)</span><br><span class="line">    <span class="keyword">for</span> k, v <span class="keyword">in</span> self._fields.items():</span><br><span class="line">        ret.<span class="built_in">set</span>(k, v[item])</span><br><span class="line">    <span class="keyword">return</span> ret</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>cat</code>: 将一个Instances列表给cat到一起</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@staticmethod</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cat</span>(<span class="params">instance_lists: <span class="type">List</span>[<span class="string">&quot;Instances&quot;</span>]</span>) -&gt; &quot;Instances&quot;:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        instance_lists (list[Instances])</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        Instances</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">all</span>(<span class="built_in">isinstance</span>(i, Instances) <span class="keyword">for</span> i <span class="keyword">in</span> instance_lists)</span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">len</span>(instance_lists) &gt; <span class="number">0</span></span><br><span class="line">    <span class="comment"># 列表长度为1直接返回index=0的数据</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(instance_lists) == <span class="number">1</span>:</span><br><span class="line">        <span class="keyword">return</span> instance_lists[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    image_size = instance_lists[<span class="number">0</span>].image_size</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> <span class="built_in">isinstance</span>(image_size, torch.Tensor):  <span class="comment"># could be a tensor in tracing</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> instance_lists[<span class="number">1</span>:]:</span><br><span class="line">            <span class="keyword">assert</span> i.image_size == image_size</span><br><span class="line">    ret = Instances(image_size)</span><br><span class="line">    <span class="keyword">for</span> k <span class="keyword">in</span> instance_lists[<span class="number">0</span>]._fields.keys():</span><br><span class="line">        values = [i.get(k) <span class="keyword">for</span> i <span class="keyword">in</span> instance_lists]</span><br><span class="line">        v0 = values[<span class="number">0</span>]</span><br><span class="line">        <span class="comment"># 如果是torch.Tensor类型的话, 则用torch.cat即可</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">isinstance</span>(v0, torch.Tensor):</span><br><span class="line">            values = torch.cat(values, dim=<span class="number">0</span>)</span><br><span class="line">        <span class="comment"># 针对list类型的元素也进行了处理</span></span><br><span class="line">        <span class="keyword">elif</span> <span class="built_in">isinstance</span>(v0, <span class="built_in">list</span>):</span><br><span class="line">            values = <span class="built_in">list</span>(itertools.chain(*values))</span><br><span class="line">        <span class="comment"># 如果元素本身包含了cat的方法, 则调用自身自带的cat方法</span></span><br><span class="line">        <span class="keyword">elif</span> <span class="built_in">hasattr</span>(<span class="built_in">type</span>(v0), <span class="string">&quot;cat&quot;</span>):</span><br><span class="line">            values = <span class="built_in">type</span>(v0).cat(values)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">raise</span> ValueError(<span class="string">&quot;Unsupported type &#123;&#125; for concatenation&quot;</span>.<span class="built_in">format</span>(<span class="built_in">type</span>(v0)))</span><br><span class="line">        ret.<span class="built_in">set</span>(k, values)</span><br><span class="line">    <span class="keyword">return</span> ret</span><br></pre></td></tr></table></figure>
+<ul>
+<li>一个简单的使用的例子:</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> detectron2.structures <span class="keyword">import</span> Instances</span><br><span class="line"></span><br><span class="line">x = Instances(image_size=(<span class="number">224</span>, <span class="number">224</span>), data=torch.randn(<span class="number">2</span>, <span class="number">2</span>))</span><br><span class="line">y = Instances(image_size=(<span class="number">224</span>, <span class="number">224</span>), data=torch.randn(<span class="number">1</span>, <span class="number">2</span>))</span><br><span class="line"></span><br><span class="line">z = Instances.cat([x, y])</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(z)</span><br><span class="line"><span class="comment"># 默认将这些数据按照dim=0给cat到一起</span></span><br><span class="line"><span class="built_in">print</span>(z.data.shape)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Instances(num_instances=<span class="number">3</span>, image_height=<span class="number">224</span>, image_width=<span class="number">224</span>, fields=[data: tensor([[ <span class="number">1.5085</span>,  <span class="number">0.4604</span>],</span><br><span class="line">        [ <span class="number">0.5877</span>,  <span class="number">1.6136</span>],</span><br><span class="line">        [-<span class="number">1.9315</span>, -<span class="number">0.5411</span>]])])</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>torch.Size([<span class="number">3</span>, <span class="number">2</span>])</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对于list类型的data会直接拼接起来</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> detectron2.structures <span class="keyword">import</span> Instances</span><br><span class="line"></span><br><span class="line">x = Instances(image_size=(<span class="number">224</span>, <span class="number">224</span>), data=torch.randn(<span class="number">2</span>, <span class="number">2</span>), list_data=[<span class="number">0</span>, <span class="number">1</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注意这里list_data的元素只能有一个, len(list_data)必须与len(data)一致</span></span><br><span class="line">y = Instances(image_size=(<span class="number">224</span>, <span class="number">224</span>), data=torch.randn(<span class="number">1</span>, <span class="number">2</span>), list_data=[<span class="number">2</span>])</span><br><span class="line"></span><br><span class="line">z = Instances.cat([x, y])</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(z)</span><br><span class="line"><span class="built_in">print</span>(z.data.shape)</span><br><span class="line"></span><br><span class="line">Instances(num_instances=<span class="number">3</span>, image_height=<span class="number">224</span>, image_width=<span class="number">224</span>, fields=[data: tensor([[<span class="number">0.4411</span>, <span class="number">0.1855</span>],</span><br><span class="line">        [<span class="number">0.1056</span>, <span class="number">0.0469</span>],</span><br><span class="line">        [<span class="number">0.8018</span>, <span class="number">0.0147</span>]]), list_data: [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>]])</span><br><span class="line">torch.Size([<span class="number">3</span>, <span class="number">2</span>])</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Detectron2/" rel="tag"># Detectron2</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/28/detectron2-event-storage/" rel="prev" title="Detectron2 Learning Notes(9): EventStorage">
+      <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(9): EventStorage
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/31/detectron2-data-load/" rel="next" title="Detectron2 Learning Notes(11): Data Load">
+      Detectron2 Learning Notes(11): Data Load <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-2"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Instances"><span class="nav-number">1.1.</span> <span class="nav-text">Instances</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">1.1.1.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Basic-Usage"><span class="nav-number">1.1.2.</span> <span class="nav-text">Basic Usage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Advanced-Usage"><span class="nav-number">1.1.3.</span> <span class="nav-text">Advanced Usage</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">52</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">191k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">2:54</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
