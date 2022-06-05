@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文学习了Detectron2中的Checkpointer模块, 主要的内容包括:  NamedTuple类 _IncompatibleKeys类">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Detectron2 Learning Notes(12): Checkpointer">
+<meta property="og:url" content="http://example.com/2022/06/05/detectron2-checkpointer/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文学习了Detectron2中的Checkpointer模块, 主要的内容包括:  NamedTuple类 _IncompatibleKeys类">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-06-04T16:21:14.000Z">
+<meta property="article:modified_time" content="2022-06-05T01:45:02.066Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Detectron2">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/06/05/detectron2-checkpointer/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Detectron2 Learning Notes(12): Checkpointer | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">54</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/05/detectron2-checkpointer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Detectron2 Learning Notes(12): Checkpointer
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-06-05 00:21:14 / Modified: 09:45:02" itemprop="dateCreated datePublished" datetime="2022-06-05T00:21:14+08:00">2022-06-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Detectron2/" itemprop="url" rel="index"><span itemprop="name">Detectron2</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>13k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>12 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文学习了Detectron2中的Checkpointer模块, 主要的内容包括:</p>
+<ul>
+<li><code>NamedTuple</code>类</li>
+<li><code>_IncompatibleKeys</code>类</li>
+</ul>
+<span id="more"></span>
+<h2 id="Contents-2">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#fvcore---checkpointer">fvcore - Checkpointer</a>
+<ul>
+<li><a href="#namedtuple-%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84namespace%E4%BD%9C%E7%94%A8">NamedTuple: 一个简单的namespace作用</a></li>
+<li><a href="#checkpointer-catch%E7%9A%843%E7%A7%8D%E7%B1%BB%E5%9E%8B%E7%9A%84key">Checkpointer catch的3种类型的key</a></li>
+</ul>
+</li>
+<li><a href="#checkpointer-base">Checkpointer Base</a>
+<ul>
+<li><a href="#%E5%88%9D%E5%A7%8B%E5%8C%96">初始化</a></li>
+<li><a href="#add_checkpointable">add_checkpointable</a></li>
+<li><a href="#save">save</a></li>
+<li><a href="#convert-ndarray-to-tensor">convert ndarray to tensor</a></li>
+<li><a href="#%E6%A0%B8%E5%BF%83%E9%83%A8%E5%88%86-load_model">核心部分 load_model</a></li>
+</ul>
+</li>
+<li><a href="#checkpointer%E4%B8%ADresume-training%E7%9B%B8%E5%85%B3%E7%9A%84%E6%96%B9%E6%B3%95">Checkpointer中resume training相关的方法</a>
+<ul>
+<li><a href="#get_checkpoint_file">get_checkpoint_file</a></li>
+</ul>
+</li>
+<li><a href="#checkpointer%E4%B8%ADlog-incompatible-keys%E7%9A%84%E7%9B%B8%E5%85%B3%E6%96%B9%E6%B3%95">Checkpointer中log incompatible keys的相关方法</a>
+<ul>
+<li><a href="#_group_checkpoint_keys">_group_checkpoint_keys</a></li>
+<li><a href="#_group_to_str">_group_to_str</a></li>
+</ul>
+</li>
+<li><a href="#periodiccheckpointer">PeriodicCheckpointer</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="fvcore-Checkpointer-2">fvcore - Checkpointer</h3>
+<p>在fvcore中定义了Checkpointer的Base类</p>
+<h4 id="NamedTuple-一个简单的namespace作用-2">NamedTuple: 一个简单的namespace作用</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Employee</span>(<span class="params">NamedTuple</span>):</span></span><br><span class="line">    name: <span class="built_in">str</span></span><br><span class="line">    <span class="built_in">id</span>: <span class="built_in">int</span></span><br><span class="line"></span><br><span class="line">employee = Employee(name=<span class="string">&quot;test&quot;</span>, <span class="built_in">id</span>=<span class="number">1234</span>)</span><br><span class="line"><span class="built_in">print</span>(employee.name)</span><br><span class="line"><span class="built_in">print</span>(employee.<span class="built_in">id</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 以上定义方法等价于</span></span><br><span class="line">Employee = NamedTuple(<span class="string">&quot;Employee&quot;</span>, name=<span class="built_in">str</span>, <span class="built_in">id</span>=<span class="built_in">int</span>)</span><br><span class="line">Employee = NamedTuple(<span class="string">&#x27;Employee&#x27;</span>, [(<span class="string">&#x27;name&#x27;</span>, <span class="built_in">str</span>), (<span class="string">&#x27;id&#x27;</span>, <span class="built_in">int</span>)])</span><br></pre></td></tr></table></figure>
+<h4 id="Checkpointer-catch的3种类型的key-2">Checkpointer catch的3种类型的key</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_IncompatibleKeys</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="class">    NamedTuple(<span class="params"></span></span></span></span><br><span class="line"><span class="params"><span class="params"><span class="class">        <span class="string">&quot;IncompatibleKeys&quot;</span>,</span></span></span></span><br><span class="line"><span class="params"><span class="params"><span class="class">        [</span></span></span></span><br><span class="line"><span class="params"><span class="params"><span class="class">            (<span class="params"><span class="string">&quot;missing_keys&quot;</span>, <span class="type">List</span>[<span class="built_in">str</span>]</span>),</span></span></span></span><br><span class="line"><span class="params"><span class="params"><span class="class">            (<span class="params"><span class="string">&quot;unexpected_keys&quot;</span>, <span class="type">List</span>[<span class="built_in">str</span>]</span>),</span></span></span></span><br><span class="line"><span class="params"><span class="params"><span class="class">            (<span class="params"><span class="string">&quot;incorrect_shapes&quot;</span>, <span class="type">List</span>[<span class="type">Tuple</span>[<span class="built_in">str</span>, <span class="type">Tuple</span>[<span class="built_in">int</span>], <span class="type">Tuple</span>[<span class="built_in">int</span>]]]</span>),</span></span></span></span><br><span class="line"><span class="params"><span class="params"><span class="class">        ],</span></span></span></span><br><span class="line"><span class="params"><span class="params"><span class="class">    </span>)</span></span></span><br><span class="line"><span class="params"><span class="class"></span>):</span></span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>继承自<code>NamedTuple</code>的类</li>
+<li><code>missing_keys</code>, <code>unexpected_keys</code>, <code>incorrect_shapes</code>: 表示缺少的key, 额外的key, 以及不正确的权重大小</li>
+</ul>
+<h3 id="Checkpointer-Base-2">Checkpointer Base</h3>
+<h4 id="初始化-2">初始化</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Checkpointer</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    A checkpointer that can save/load model as well as extra checkpointable</span></span><br><span class="line"><span class="string">    objects.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">        self,</span></span></span><br><span class="line"><span class="params"><span class="function">        model: nn.Module,</span></span></span><br><span class="line"><span class="params"><span class="function">        save_dir: <span class="built_in">str</span> = <span class="string">&quot;&quot;</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        *,</span></span></span><br><span class="line"><span class="params"><span class="function">        save_to_disk: <span class="built_in">bool</span> = <span class="literal">True</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        **checkpointables: <span class="type">Any</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    </span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            model (nn.Module): model.</span></span><br><span class="line"><span class="string">            save_dir (str): a directory to save and find checkpoints.</span></span><br><span class="line"><span class="string">            save_to_disk (bool): if True, save checkpoint to disk, otherwise</span></span><br><span class="line"><span class="string">                disable saving for this checkpointer.</span></span><br><span class="line"><span class="string">            checkpointables (object): any checkpointable objects, i.e., objects</span></span><br><span class="line"><span class="string">                that have the ``state_dict()`` and ``load_state_dict()`` method. For</span></span><br><span class="line"><span class="string">                example, it can be used like</span></span><br><span class="line"><span class="string">                `Checkpointer(model, &quot;dir&quot;, optimizer=optimizer)`.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">isinstance</span>(model, (DistributedDataParallel, DataParallel)):</span><br><span class="line">            model = model.module</span><br><span class="line">        <span class="comment"># model to save</span></span><br><span class="line">        self.model = model</span><br><span class="line">        <span class="comment"># other checkpointables</span></span><br><span class="line">        self.checkpointables: <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>] = &#123;&#125;</span><br><span class="line">        <span class="keyword">for</span> k, v <span class="keyword">in</span> checkpointables.items():</span><br><span class="line">            self.add_checkpointable(k, v)</span><br><span class="line">        <span class="comment"># logger and pathmanager</span></span><br><span class="line">        self.logger: logging.Logger = logging.getLogger(__name__)</span><br><span class="line">        self.save_dir = save_dir</span><br><span class="line">        self.save_to_disk = save_to_disk</span><br><span class="line">        <span class="comment"># Default PathManager, support HTTP URLs (for backward compatibility in open source).</span></span><br><span class="line">        <span class="comment"># A user may want to use a different project-specific PathManager</span></span><br><span class="line">        self.path_manager: PathManager = PathManager()</span><br><span class="line">        self.path_manager.register_handler(HTTPURLHandler())</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>checkpointerables</code>: 任何拥有<code>state_dict</code>以及<code>load_state_dict</code>方法的变量, 类似<code>scheduler</code>和<code>optimizer</code></li>
+</ul>
+<h4 id="add-checkpointable-2">add_checkpointable</h4>
+<p>将<code>checkpointable</code>变量注册到<code>self.checkpointables</code>中</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_checkpointable</span>(<span class="params">self, key: <span class="built_in">str</span>, checkpointable: <span class="type">Any</span></span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">    <span class="keyword">if</span> key <span class="keyword">in</span> self.checkpointables:</span><br><span class="line">        <span class="keyword">raise</span> KeyError(<span class="string">f&quot;Key <span class="subst">&#123;key&#125;</span> already used in the Checkpointer&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> <span class="built_in">hasattr</span>(checkpointable, <span class="string">&quot;state_dict&quot;</span>):</span><br><span class="line">        <span class="keyword">raise</span> TypeError(</span><br><span class="line">            <span class="string">&quot;add_checkpointable needs an object with &#x27;state_dict()&#x27; method.&quot;</span></span><br><span class="line">        )</span><br><span class="line">    self.checkpointables[key] = checkpointable</span><br></pre></td></tr></table></figure>
+<h4 id="save-2">save</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">save</span>(<span class="params">self, name: <span class="built_in">str</span>, **kwargs: <span class="type">Any</span></span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Dump model and checkpointables to a file.</span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        name (str): name of the file.</span></span><br><span class="line"><span class="string">        kwargs (dict): extra arbitrary data to save.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> self.save_dir <span class="keyword">or</span> <span class="keyword">not</span> self.save_to_disk:</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">    data = &#123;&#125;</span><br><span class="line">    <span class="comment"># 保存了模型, 注册的checkpointable以及一些额外用户自定义的key-value</span></span><br><span class="line">    data[<span class="string">&quot;model&quot;</span>] = self.model.state_dict()</span><br><span class="line">    <span class="keyword">for</span> key, obj <span class="keyword">in</span> self.checkpointables.items():</span><br><span class="line">        data[key] = obj.state_dict()</span><br><span class="line">    data.update(kwargs)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 定义了保存路径, 打印log</span></span><br><span class="line">    basename = <span class="string">&quot;&#123;&#125;.pth&quot;</span>.<span class="built_in">format</span>(name)</span><br><span class="line">    save_file = os.path.join(self.save_dir, basename)</span><br><span class="line">    <span class="keyword">assert</span> os.path.basename(save_file) == basename, basename</span><br><span class="line">    self.logger.info(<span class="string">&quot;Saving checkpoint to &#123;&#125;&quot;</span>.<span class="built_in">format</span>(save_file))</span><br><span class="line">    <span class="keyword">with</span> self.path_manager.<span class="built_in">open</span>(save_file, <span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        torch.save(data, f)</span><br><span class="line">    self.tag_last_checkpoint(basename)</span><br></pre></td></tr></table></figure>
+<h4 id="convert-ndarray-to-tensor-2">convert ndarray to tensor</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_convert_ndarray_to_tensor</span>(<span class="params">self, state_dict: <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]</span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">    <span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">list</span>(state_dict.keys()):</span><br><span class="line">        v = state_dict[k]</span><br><span class="line">        <span class="comment"># 只支持ndarray的转换</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> <span class="built_in">isinstance</span>(v, np.ndarray) <span class="keyword">and</span> <span class="keyword">not</span> <span class="built_in">isinstance</span>(v, torch.Tensor):</span><br><span class="line">            <span class="keyword">raise</span> ValueError(</span><br><span class="line">                <span class="string">&quot;Unsupported type found in checkpoint! &#123;&#125;: &#123;&#125;&quot;</span>.<span class="built_in">format</span>(k, <span class="built_in">type</span>(v))</span><br><span class="line">            )</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> <span class="built_in">isinstance</span>(v, torch.Tensor):</span><br><span class="line">            <span class="comment"># 调用torch.from_numpy转换ndarray为tensor, 是一种inplace操作</span></span><br><span class="line">            state_dict[k] = torch.from_numpy(v)</span><br></pre></td></tr></table></figure>
+<h4 id="核心部分-load-model-2">核心部分 load_model</h4>
+<p>主要的作用有:</p>
+<ul>
+<li>加载模型</li>
+<li>返回不符合的keys</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_load_model</span>(<span class="params">self, checkpoint: <span class="type">Any</span></span>) -&gt; _IncompatibleKeys:</span></span><br></pre></td></tr></table></figure>
+<p>load checkpoint, 返回key的信息</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">checkpoint_state_dict = checkpoint.pop(<span class="string">&quot;model&quot;</span>)</span><br><span class="line"><span class="comment"># 如果保存的是ndarray, 则转换为tensor</span></span><br><span class="line">self._convert_ndarray_to_tensor(checkpoint_state_dict)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果一个模型的state_dict是通过DataParallel或者DistributedDataParallel生成的话</span></span><br><span class="line"><span class="comment"># 权重前缀会带 module, 可以调用这个方法把前缀给去掉</span></span><br><span class="line">_strip_prefix_if_present(checkpoint_state_dict, <span class="string">&quot;module.&quot;</span>)</span><br><span class="line"></span><br><span class="line">model_state_dict = self.model.state_dict()</span><br><span class="line">incorrect_shapes = []</span><br><span class="line"><span class="comment"># 这里精简一下代码</span></span><br><span class="line"><span class="keyword">for</span> k <span class="keyword">in</span> <span class="built_in">list</span>(checkpoint_state_dict.keys()):</span><br><span class="line">    <span class="keyword">if</span> k <span class="keyword">in</span> model_state_dict:</span><br><span class="line">        model_param = model_state_dict[k]</span><br><span class="line">        shape_model = <span class="built_in">tuple</span>(model_param.shape)</span><br><span class="line">        shape_checkpoint = <span class="built_in">tuple</span>(checkpoint_state_dict[k].shape)</span><br><span class="line">        <span class="keyword">if</span> shape_model != shape_checkpoint:</span><br><span class="line">            incorrect_shapes.append((k, shape_checkpoint, shape_model))</span><br><span class="line">            checkpoint_state_dict.pop(k)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用torch.nn.Module的load_state_dict方法, 会返回incompatible信息</span></span><br><span class="line">incompatible = self.model.load_state_dict(checkpoint_state_dict, strict=<span class="literal">False</span>)</span><br><span class="line"><span class="keyword">return</span> _IncompatibleKeys(</span><br><span class="line">    missing_keys=incompatible.missing_keys,</span><br><span class="line">    unexpected_keys=incompatible.unexpected_keys,</span><br><span class="line">    incorrect_shapes=incorrect_shapes,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>incompatible</code>返回的也是一个<code>namedtuple</code>, 有<code>missing_keys</code>和<code>unexpected_keys</code>两个属性</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_IncompatibleKeys</span>(<span class="params">namedtuple(<span class="params"><span class="string">&#x27;IncompatibleKeys&#x27;</span>, [<span class="string">&#x27;missing_keys&#x27;</span>, <span class="string">&#x27;unexpected_keys&#x27;</span>]</span>)</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__repr__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> self.missing_keys <span class="keyword">and</span> <span class="keyword">not</span> self.unexpected_keys:</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&#x27;&lt;All keys matched successfully&gt;&#x27;</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">super</span>(_IncompatibleKeys, self).__repr__()</span><br><span class="line"></span><br><span class="line">    __str__ = __repr__</span><br></pre></td></tr></table></figure>
+<h3 id="Checkpointer中resume-training相关的方法-2">Checkpointer中resume training相关的方法</h3>
+<h4 id="get-checkpoint-file-2">get_checkpoint_file</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_checkpoint_file</span>(<span class="params">self</span>) -&gt; <span class="built_in">str</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        str: The latest checkpoint file in target directory.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    save_file = os.path.join(self.save_dir, <span class="string">&quot;last_checkpoint&quot;</span>)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">with</span> self.path_manager.<span class="built_in">open</span>(save_file, <span class="string">&quot;r&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">            last_saved = f.read().strip()</span><br><span class="line">    <span class="keyword">except</span> IOError:</span><br><span class="line">        <span class="comment"># if file doesn&#x27;t exist, maybe because it has just been</span></span><br><span class="line">        <span class="comment"># deleted by a separate process</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="comment"># pyre-fixme[6]: For 2nd param expected `Union[PathLike[str], str]` but got</span></span><br><span class="line">    <span class="comment">#  `Union[bytes, str]`.</span></span><br><span class="line">    <span class="keyword">return</span> os.path.join(self.save_dir, last_saved)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_all_checkpoint_files</span>(<span class="params">self</span>) -&gt; <span class="type">List</span>[<span class="built_in">str</span>]:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        list: All available checkpoint files (.pth files) in target</span></span><br><span class="line"><span class="string">            directory.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    all_model_checkpoints = [</span><br><span class="line">        os.path.join(self.save_dir, file)</span><br><span class="line">        <span class="keyword">for</span> file <span class="keyword">in</span> self.path_manager.ls(self.save_dir)</span><br><span class="line">        <span class="keyword">if</span> self.path_manager.isfile(os.path.join(self.save_dir, file))</span><br><span class="line">        <span class="keyword">and</span> file.endswith(<span class="string">&quot;.pth&quot;</span>)</span><br><span class="line">    ]</span><br><span class="line">    <span class="keyword">return</span> all_model_checkpoints</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">resume_or_load</span>(<span class="params">self, path: <span class="built_in">str</span>, *, resume: <span class="built_in">bool</span> = <span class="literal">True</span></span>) -&gt; <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    If `resume` is True, this method attempts to resume from the last</span></span><br><span class="line"><span class="string">    checkpoint, if exists. Otherwise, load checkpoint from the given path.</span></span><br><span class="line"><span class="string">    This is useful when restarting an interrupted training job.</span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        path (str): path to the checkpoint.</span></span><br><span class="line"><span class="string">        resume (bool): if True, resume from the last checkpoint if it exists</span></span><br><span class="line"><span class="string">            and load the model together with all the checkpointables. Otherwise</span></span><br><span class="line"><span class="string">            only load the model without loading any checkpointables.</span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        same as :meth:`load`.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> resume <span class="keyword">and</span> self.has_checkpoint():</span><br><span class="line">        path = self.get_checkpoint_file()</span><br><span class="line">        <span class="keyword">return</span> self.load(path)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> self.load(path, checkpointables=[])</span><br></pre></td></tr></table></figure>
+<h3 id="Checkpointer中log-incompatible-keys的相关方法-2">Checkpointer中log incompatible keys的相关方法</h3>
+<p>这个部分主要是记录权重里不兼容的keys</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_log_incompatible_keys</span>(<span class="params">self, incompatible: _IncompatibleKeys</span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Log information about the incompatible keys returned by ``_load_model``.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">for</span> k, shape_checkpoint, shape_model <span class="keyword">in</span> incompatible.incorrect_shapes:</span><br><span class="line">        self.logger.warning(</span><br><span class="line">            <span class="string">&quot;Skip loading parameter &#x27;&#123;&#125;&#x27; to the model due to incompatible &quot;</span></span><br><span class="line">            <span class="string">&quot;shapes: &#123;&#125; in the checkpoint but &#123;&#125; in the &quot;</span></span><br><span class="line">            <span class="string">&quot;model! You might want to double check if this is expected.&quot;</span>.<span class="built_in">format</span>(</span><br><span class="line">                k, shape_checkpoint, shape_model</span><br><span class="line">            )</span><br><span class="line">        )</span><br><span class="line">    <span class="keyword">if</span> incompatible.missing_keys:</span><br><span class="line">        missing_keys = _filter_reused_missing_keys(</span><br><span class="line">            self.model, incompatible.missing_keys</span><br><span class="line">        )</span><br><span class="line">        <span class="keyword">if</span> missing_keys:</span><br><span class="line">            self.logger.warning(get_missing_parameters_message(missing_keys))</span><br><span class="line">    <span class="keyword">if</span> incompatible.unexpected_keys:</span><br><span class="line">        self.logger.warning(</span><br><span class="line">            get_unexpected_parameters_message(incompatible.unexpected_keys)</span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+<p>输出在终端的log大概为以下格式:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Some model parameters or buffers are not found <span class="keyword">in</span> the checkpoint:</span></span><br><span class="line">head.kernels.&#123;bias, weight&#125;</span><br><span class="line">head.mask_heads.0.cls_fcs.0.weight</span><br><span class="line">head.mask_hedas.0.cls_fcs.1.&#123;bias, weight&#125;</span><br></pre></td></tr></table></figure>
+<p>所以需要把这些keys进行group化操作, 需要以下函数</p>
+<h4 id="group-checkpoint-keys-2">_group_checkpoint_keys</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_group_checkpoint_keys</span>(<span class="params">keys: <span class="type">List</span>[<span class="built_in">str</span>]</span>) -&gt; <span class="type">Dict</span>[<span class="built_in">str</span>, <span class="type">List</span>[<span class="built_in">str</span>]]:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Group keys based on common prefixes. A prefix is the string up to the final</span></span><br><span class="line"><span class="string">    &quot;.&quot; in each key.</span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        keys (list[str]): list of parameter names, i.e. keys in the model</span></span><br><span class="line"><span class="string">            checkpoint dict.</span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        dict[list]: keys with common prefixes are grouped into lists.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    groups = defaultdict(<span class="built_in">list</span>)</span><br><span class="line">    <span class="keyword">for</span> key <span class="keyword">in</span> keys:</span><br><span class="line">        <span class="comment"># rfind 是从后往前找到第一个出现的这个字符, 没有则返回 -1</span></span><br><span class="line">        pos = key.rfind(<span class="string">&quot;.&quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> pos &gt;= <span class="number">0</span>:</span><br><span class="line">            head, tail = key[:pos], [key[pos + <span class="number">1</span> :]]</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            head, tail = key, []</span><br><span class="line">        groups[head].extend(tail)</span><br><span class="line">    <span class="keyword">return</span> groups</span><br></pre></td></tr></table></figure>
+<p><strong>Using Examples</strong>:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> torchvision.models.resnet <span class="keyword">import</span> resnet18</span><br><span class="line"></span><br><span class="line">res18 = resnet18()</span><br><span class="line">params = <span class="built_in">list</span>(res18.state_dict().keys())</span><br><span class="line"></span><br><span class="line">groups = _group_checkpoint_keys(params)</span><br><span class="line"><span class="built_in">print</span>(groups)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>defaultdict(&lt;<span class="class"><span class="keyword">class</span> &#x27;<span class="title">list</span>&#x27;&gt;, &#123;&#x27;<span class="title">conv1</span>&#x27;:</span> [<span class="string">&#x27;weight&#x27;</span>], <span class="string">&#x27;bn1&#x27;</span>: [<span class="string">&#x27;weight&#x27;</span>, <span class="string">&#x27;bias&#x27;</span>, <span class="string">&#x27;running_mean&#x27;</span>, <span class="string">&#x27;running_var&#x27;</span>, <span class="string">&#x27;num_batches_tracked&#x27;</span>], <span class="string">&#x27;layer1.0.conv1&#x27;</span>: [<span class="string">&#x27;weight&#x27;</span>], ... &#125;)</span><br></pre></td></tr></table></figure>
+<h4 id="group-to-str-2">_group_to_str</h4>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_group_to_str</span>(<span class="params">group: <span class="type">List</span>[<span class="built_in">str</span>]</span>) -&gt; <span class="built_in">str</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Format a group of parameter name suffixes into a loggable string.</span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        group (list[str]): list of parameter name suffixes.</span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        str: formated string.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(group) == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(group) == <span class="number">1</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;.&quot;</span> + group[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;.&#123;&quot;</span> + <span class="string">&quot;, &quot;</span>.join(<span class="built_in">sorted</span>(group)) + <span class="string">&quot;&#125;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># example</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>.&#123;bn1, conv1, fc, layer1<span class="number">.0</span>.bn1, layer1<span class="number">.0</span>.bn2, layer1<span class="number">.0</span>.conv1, layer1<span class="number">.0</span>.conv2, layer1<span class="number">.1</span>.bn1, layer1<span class="number">.1</span>.bn2, layer1<span class="number">.1</span>.conv1, layer1<span class="number">.1</span>.conv2, layer2<span class="number">.0</span>.bn1, ...&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="PeriodicCheckpointer-2">PeriodicCheckpointer</h3>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PeriodicCheckpointer</span>:</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Save checkpoints periodically. When `.step(iteration)` is called, it will</span></span><br><span class="line"><span class="string">    execute `checkpointer.save` on the given checkpointer, if iteration is a</span></span><br><span class="line"><span class="string">    multiple of period or if `max_iter` is reached.</span></span><br><span class="line"><span class="string">    Attributes:</span></span><br><span class="line"><span class="string">        checkpointer (Checkpointer): the underlying checkpointer object</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">        self,</span></span></span><br><span class="line"><span class="params"><span class="function">        checkpointer: Checkpointer,</span></span></span><br><span class="line"><span class="params"><span class="function">        period: <span class="built_in">int</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        max_iter: <span class="type">Optional</span>[<span class="built_in">int</span>] = <span class="literal">None</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        max_to_keep: <span class="type">Optional</span>[<span class="built_in">int</span>] = <span class="literal">None</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        file_prefix: <span class="built_in">str</span> = <span class="string">&quot;model&quot;</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    </span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            checkpointer: the checkpointer object used to save checkpoints.</span></span><br><span class="line"><span class="string">            period (int): the period to save checkpoint.</span></span><br><span class="line"><span class="string">            max_iter (int): maximum number of iterations. When it is reached,</span></span><br><span class="line"><span class="string">                a checkpoint named &quot;&#123;file_prefix&#125;_final&quot; will be saved.</span></span><br><span class="line"><span class="string">            max_to_keep (int): maximum number of most current checkpoints to keep,</span></span><br><span class="line"><span class="string">                previous checkpoints will be deleted</span></span><br><span class="line"><span class="string">            file_prefix (str): the prefix of checkpoint&#x27;s filename</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        self.checkpointer = checkpointer</span><br><span class="line">        self.period = <span class="built_in">int</span>(period)</span><br><span class="line">        self.max_iter = max_iter</span><br><span class="line">        <span class="keyword">if</span> max_to_keep <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="keyword">assert</span> max_to_keep &gt; <span class="number">0</span></span><br><span class="line">        self.max_to_keep = max_to_keep</span><br><span class="line">        self.recent_checkpoints: <span class="type">List</span>[<span class="built_in">str</span>] = []</span><br><span class="line">        self.path_manager: PathManager = checkpointer.path_manager</span><br><span class="line">        self.file_prefix = file_prefix</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">step</span>(<span class="params">self, iteration: <span class="built_in">int</span>, **kwargs: <span class="type">Any</span></span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Perform the appropriate action at the given iteration.</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            iteration (int): the current iteration, ranged in [0, max_iter-1].</span></span><br><span class="line"><span class="string">            kwargs (Any): extra data to save, same as in</span></span><br><span class="line"><span class="string">                :meth:`Checkpointer.save`.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        iteration = <span class="built_in">int</span>(iteration)</span><br><span class="line">        additional_state = &#123;<span class="string">&quot;iteration&quot;</span>: iteration&#125;</span><br><span class="line">        additional_state.update(kwargs)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (iteration + <span class="number">1</span>) % self.period == <span class="number">0</span>:</span><br><span class="line">            self.checkpointer.save(</span><br><span class="line">                <span class="string">&quot;&#123;&#125;_&#123;:07d&#125;&quot;</span>.<span class="built_in">format</span>(self.file_prefix, iteration), **additional_state</span><br><span class="line">            )</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> self.max_to_keep <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">                self.recent_checkpoints.append(self.checkpointer.get_checkpoint_file())</span><br><span class="line">                <span class="keyword">if</span> <span class="built_in">len</span>(self.recent_checkpoints) &gt; self.max_to_keep:</span><br><span class="line">                    file_to_delete = self.recent_checkpoints.pop(<span class="number">0</span>)</span><br><span class="line">                    <span class="keyword">if</span> self.path_manager.exists(</span><br><span class="line">                        file_to_delete</span><br><span class="line">                    ) <span class="keyword">and</span> <span class="keyword">not</span> file_to_delete.endswith(<span class="string">f&quot;<span class="subst">&#123;self.file_prefix&#125;</span>_final.pth&quot;</span>):</span><br><span class="line">                        self.path_manager.rm(file_to_delete)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> self.max_iter <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            <span class="keyword">if</span> iteration &gt;= self.max_iter - <span class="number">1</span>:</span><br><span class="line">                self.checkpointer.save(<span class="string">f&quot;<span class="subst">&#123;self.file_prefix&#125;</span>_final&quot;</span>, **additional_state)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">save</span>(<span class="params">self, name: <span class="built_in">str</span>, **kwargs: <span class="type">Any</span></span>) -&gt; <span class="literal">None</span>:</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Same argument as :meth:`Checkpointer.save`.</span></span><br><span class="line"><span class="string">        Use this method to manually save checkpoints outside the schedule.</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            name (str): file name.</span></span><br><span class="line"><span class="string">            kwargs (Any): extra data to save, same as in</span></span><br><span class="line"><span class="string">                :meth:`Checkpointer.save`.</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        self.checkpointer.save(name, **kwargs)</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Detectron2/" rel="tag"># Detectron2</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/31/detectron2-data-load/" rel="prev" title="Detectron2 Learning Notes(11): Data Load Part-1">
+      <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(11): Data Load Part-1
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/05/detectron2-data-load-2/" rel="next" title="Detectron2 Learning Notes(13): Data Load Part-2">
+      Detectron2 Learning Notes(13): Data Load Part-2 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-2"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#fvcore-Checkpointer-2"><span class="nav-number">1.1.</span> <span class="nav-text">fvcore - Checkpointer</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NamedTuple-%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84namespace%E4%BD%9C%E7%94%A8-2"><span class="nav-number">1.1.1.</span> <span class="nav-text">NamedTuple: 一个简单的namespace作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Checkpointer-catch%E7%9A%843%E7%A7%8D%E7%B1%BB%E5%9E%8B%E7%9A%84key-2"><span class="nav-number">1.1.2.</span> <span class="nav-text">Checkpointer catch的3种类型的key</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Checkpointer-Base-2"><span class="nav-number">1.2.</span> <span class="nav-text">Checkpointer Base</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96-2"><span class="nav-number">1.2.1.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#add-checkpointable-2"><span class="nav-number">1.2.2.</span> <span class="nav-text">add_checkpointable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#save-2"><span class="nav-number">1.2.3.</span> <span class="nav-text">save</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#convert-ndarray-to-tensor-2"><span class="nav-number">1.2.4.</span> <span class="nav-text">convert ndarray to tensor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E9%83%A8%E5%88%86-load-model-2"><span class="nav-number">1.2.5.</span> <span class="nav-text">核心部分 load_model</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Checkpointer%E4%B8%ADresume-training%E7%9B%B8%E5%85%B3%E7%9A%84%E6%96%B9%E6%B3%95-2"><span class="nav-number">1.3.</span> <span class="nav-text">Checkpointer中resume training相关的方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#get-checkpoint-file-2"><span class="nav-number">1.3.1.</span> <span class="nav-text">get_checkpoint_file</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Checkpointer%E4%B8%ADlog-incompatible-keys%E7%9A%84%E7%9B%B8%E5%85%B3%E6%96%B9%E6%B3%95-2"><span class="nav-number">1.4.</span> <span class="nav-text">Checkpointer中log incompatible keys的相关方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#group-checkpoint-keys-2"><span class="nav-number">1.4.1.</span> <span class="nav-text">_group_checkpoint_keys</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#group-to-str-2"><span class="nav-number">1.4.2.</span> <span class="nav-text">_group_to_str</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PeriodicCheckpointer-2"><span class="nav-number">1.5.</span> <span class="nav-text">PeriodicCheckpointer</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">208k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">3:09</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

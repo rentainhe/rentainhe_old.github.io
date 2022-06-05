@@ -22,13 +22,13 @@
 
   <meta name="description" content="本文主要介绍了detectron2里的数据加载逻辑~">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Detectron2 Learning Notes(11): Data Load">
+<meta property="og:title" content="Detectron2 Learning Notes(11): Data Load Part-1">
 <meta property="og:url" content="http://example.com/2022/05/31/detectron2-data-load/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
 <meta property="og:description" content="本文主要介绍了detectron2里的数据加载逻辑~">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-05-31T03:58:23.000Z">
-<meta property="article:modified_time" content="2022-05-31T05:08:29.830Z">
+<meta property="article:modified_time" content="2022-06-05T01:55:18.694Z">
 <meta property="article:author" content="Ren Tianhe">
 <meta property="article:tag" content="Detectron2">
 <meta name="twitter:card" content="summary">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>Detectron2 Learning Notes(11): Data Load | RenTianhe's Blog</title>
+  <title>Detectron2 Learning Notes(11): Data Load Part-1 | RenTianhe's Blog</title>
   
 
 
@@ -136,7 +136,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">52</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">54</span></a>
 
   </li>
         <li class="menu-item menu-item-projects">
@@ -190,7 +190,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Detectron2 Learning Notes(11): Data Load
+          Detectron2 Learning Notes(11): Data Load Part-1
         </h1>
 
         <div class="post-meta">
@@ -199,10 +199,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2022-05-31 11:58:23 / Modified: 13:08:29" itemprop="dateCreated datePublished" datetime="2022-05-31T11:58:23+08:00">2022-05-31</time>
+              <time title="Created: 2022-05-31 11:58:23" itemprop="dateCreated datePublished" datetime="2022-05-31T11:58:23+08:00">2022-05-31</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-06-05 09:55:18" itemprop="dateModified" datetime="2022-06-05T09:55:18+08:00">2022-06-05</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -247,7 +253,7 @@
       
         <p>本文主要介绍了detectron2里的数据加载逻辑~</p>
 <span id="more"></span>
-<h2 id="Contents-3">Contents</h2>
+<h2 id="Contents">Contents</h2>
 <ul>
 <li><a href="#contents">Contents</a></li>
 <li><a href="#%E6%95%B4%E4%BD%93%E9%80%BB%E8%BE%91">整体逻辑</a>
@@ -268,7 +274,7 @@
 </ul>
 <p>其他几个参数暂时不对其进行了解</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_detection_dataset_dicts</span>(<span class="params"></span></span></span><br><span class="line"><span class="params"><span class="function">    names,</span></span></span><br><span class="line"><span class="params"><span class="function">    filter_empty=<span class="literal">True</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    min_keypoints=<span class="number">0</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    proposal_files=<span class="literal">None</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    check_consistency=<span class="literal">True</span>,</span></span></span><br><span class="line"><span class="params"><span class="function"></span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Load and prepare dataset dicts for instance detection/segmentation and semantic segmentation.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        names (str or list[str]): a dataset name or a list of dataset names</span></span><br><span class="line"><span class="string">        filter_empty (bool): whether to filter out images without instance annotations</span></span><br><span class="line"><span class="string">        min_keypoints (int): filter out images with fewer keypoints than</span></span><br><span class="line"><span class="string">            `min_keypoints`. Set to 0 to do nothing.</span></span><br><span class="line"><span class="string">        proposal_files (list[str]): if given, a list of object proposal files</span></span><br><span class="line"><span class="string">            that match each dataset in `names`.</span></span><br><span class="line"><span class="string">        check_consistency (bool): whether to check if datasets have consistent metadata.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        list[dict]: a list of dicts following the standard dataset dict format.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="comment"># 判断传入的name是否为str, 如果是一个str的话则转换为list</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">isinstance</span>(names, <span class="built_in">str</span>):</span><br><span class="line">        names = [names]</span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">len</span>(names), names</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 如果传入多个dataset, 则组织成一个list</span></span><br><span class="line">    dataset_dicts = [DatasetCatalog.get(dataset_name) <span class="keyword">for</span> dataset_name <span class="keyword">in</span> names]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">isinstance</span>(dataset_dicts[<span class="number">0</span>], torchdata.Dataset):</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(dataset_dicts) &gt; <span class="number">1</span>:</span><br><span class="line">            <span class="comment"># ConcatDataset does not work for iterable style dataset.</span></span><br><span class="line">            <span class="comment"># We could support concat for iterable as well, but it&#x27;s often</span></span><br><span class="line">            <span class="comment"># not a good idea to concat iterables anyway.</span></span><br><span class="line">            <span class="keyword">return</span> torchdata.ConcatDataset(dataset_dicts)</span><br><span class="line">        <span class="keyword">return</span> dataset_dicts[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> dataset_name, dicts <span class="keyword">in</span> <span class="built_in">zip</span>(names, dataset_dicts):</span><br><span class="line">        <span class="keyword">assert</span> <span class="built_in">len</span>(dicts), <span class="string">&quot;Dataset &#x27;&#123;&#125;&#x27; is empty!&quot;</span>.<span class="built_in">format</span>(dataset_name)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> proposal_files <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">assert</span> <span class="built_in">len</span>(names) == <span class="built_in">len</span>(proposal_files)</span><br><span class="line">        <span class="comment"># load precomputed proposals from proposal files</span></span><br><span class="line">        dataset_dicts = [</span><br><span class="line">            load_proposals_into_dataset(dataset_i_dicts, proposal_file)</span><br><span class="line">            <span class="keyword">for</span> dataset_i_dicts, proposal_file <span class="keyword">in</span> <span class="built_in">zip</span>(dataset_dicts, proposal_files)</span><br><span class="line">        ]</span><br><span class="line"></span><br><span class="line">    dataset_dicts = <span class="built_in">list</span>(itertools.chain.from_iterable(dataset_dicts))</span><br><span class="line"></span><br><span class="line">    has_instances = <span class="string">&quot;annotations&quot;</span> <span class="keyword">in</span> dataset_dicts[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">if</span> filter_empty <span class="keyword">and</span> has_instances:</span><br><span class="line">        dataset_dicts = filter_images_with_only_crowd_annotations(dataset_dicts)</span><br><span class="line">    <span class="keyword">if</span> min_keypoints &gt; <span class="number">0</span> <span class="keyword">and</span> has_instances:</span><br><span class="line">        dataset_dicts = filter_images_with_few_keypoints(dataset_dicts, min_keypoints)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> check_consistency <span class="keyword">and</span> has_instances:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            class_names = MetadataCatalog.get(names[<span class="number">0</span>]).thing_classes</span><br><span class="line">            check_metadata_consistency(<span class="string">&quot;thing_classes&quot;</span>, names)</span><br><span class="line">            print_instances_class_histogram(dataset_dicts, class_names)</span><br><span class="line">        <span class="keyword">except</span> AttributeError:  <span class="comment"># class names are not available for this dataset</span></span><br><span class="line">            <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">len</span>(dataset_dicts), <span class="string">&quot;No valid data found in &#123;&#125;.&quot;</span>.<span class="built_in">format</span>(<span class="string">&quot;,&quot;</span>.join(names))</span><br><span class="line">    <span class="keyword">return</span> dataset_dicts</span><br></pre></td></tr></table></figure>
-<h2 id="Reference-2">Reference</h2>
+<h2 id="Reference">Reference</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/88149772">Detectron2源码阅读笔记-（三）Dataset pipeline</a></li>
 </ul>
@@ -293,7 +299,10 @@
     <a href="/2022/05/30/detectron2-instances/" rel="prev" title="Detectron2 Learning Notes(10): Instances">
       <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(10): Instances
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/05/detectron2-checkpointer/" rel="next" title="Detectron2 Learning Notes(12): Checkpointer">
+      Detectron2 Learning Notes(12): Checkpointer <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -352,7 +361,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-3"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E9%80%BB%E8%BE%91"><span class="nav-number">2.</span> <span class="nav-text">整体逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#get-detection-dataset-dicts"><span class="nav-number">2.1.</span> <span class="nav-text">get_detection_dataset_dicts</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference-2"><span class="nav-number">3.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E9%80%BB%E8%BE%91"><span class="nav-number">2.</span> <span class="nav-text">整体逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#get-detection-dataset-dicts"><span class="nav-number">2.1.</span> <span class="nav-text">get_detection_dataset_dicts</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">3.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -366,7 +375,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">52</span>
+          <span class="site-state-item-count">54</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -427,13 +436,13 @@
       <i class="fa fa-chart-area"></i>
     </span>
       <span class="post-meta-item-text">Symbols count total: </span>
-    <span title="Symbols count total">191k</span>
+    <span title="Symbols count total">208k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">Reading time total &asymp;</span>
-    <span title="Reading time total">2:54</span>
+    <span title="Reading time total">3:09</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
