@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文是介绍Detectron2中数据读取的第三篇文章, 主要的内容:  load_coco_json: 读取并解析coco annotations register_coco_instances: 注册coco instances">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Detectron2 Learning Notes(13): Data Load Part-3">
+<meta property="og:url" content="http://example.com/2022/06/06/detectron2-load-coco-json/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文是介绍Detectron2中数据读取的第三篇文章, 主要的内容:  load_coco_json: 读取并解析coco annotations register_coco_instances: 注册coco instances">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-06-05T16:40:49.000Z">
+<meta property="article:modified_time" content="2022-06-06T10:52:24.728Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Detectron2">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/06/06/detectron2-load-coco-json/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Detectron2 Learning Notes(13): Data Load Part-3 | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">56</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/06/detectron2-load-coco-json/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Detectron2 Learning Notes(13): Data Load Part-3
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-06-06 00:40:49 / Modified: 18:52:24" itemprop="dateCreated datePublished" datetime="2022-06-06T00:40:49+08:00">2022-06-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Detectron2/" itemprop="url" rel="index"><span itemprop="name">Detectron2</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>6.1k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>6 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文是介绍Detectron2中数据读取的第三篇文章, 主要的内容:</p>
+<ul>
+<li>load_coco_json: 读取并解析coco annotations</li>
+<li>register_coco_instances: 注册coco instances</li>
+</ul>
+<span id="more"></span>
+<h2 id="Contents">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#load_coco_json">load_coco_json</a></li>
+<li><a href="#register_coco_instances">register_coco_instances</a></li>
+<li><a href="#combine-with-datasetcatelog">Combine with DatasetCatelog</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="load-coco-json">load_coco_json</h3>
+<p>这边简单拆解一下<code>load_coco_json</code>里的步骤, 以下的代码相较于<a target="_blank" rel="noopener" href="https://github.com/facebookresearch/detectron2/blob/1477e845b155a871edeedacc93ea88d0969a684b/detectron2/data/datasets/coco.py#L30">source code</a>有一些简化, 主要做了以下操作:</p>
+<ul>
+<li>读取<code>annotation</code>的<code>json</code>文件</li>
+<li>对<code>annotation</code>中标签进行<code>pre-process</code></li>
+<li>将结果添加到一个<code>list</code>中返回, 返回格式为<code>list[dict]</code></li>
+</ul>
+<p>简化的代码如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">load_coco_json</span>(<span class="params">json_file, image_root, dataset_name=<span class="literal">None</span>, extra_annotation_keys=<span class="literal">None</span></span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    json_file: 需要读取的coco annotation路径</span></span><br><span class="line"><span class="string">    image_root: coco annotation中相关的图片的保存位置</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">from</span> pycocotools.coco <span class="keyword">import</span> COCO</span><br><span class="line">    json_file = PathManager.get_local_path(json_file)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 读取annotation</span></span><br><span class="line">    coco_api = COCO(json_file)</span><br><span class="line">    </span><br><span class="line">    id_map = <span class="literal">None</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 得到内置的meta信息</span></span><br><span class="line">    meta = MetadataCatalog.get(dataset_name)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 得到所有category的id, 并用sorted函数使其从小到大排列</span></span><br><span class="line">    cat_ids = <span class="built_in">sorted</span>(coco_api.getCatIds())  <span class="comment"># [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, ..., 90] 总共有80个category id, 不连续, 比如11 13, 没有12</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 根据id得到对应的category info</span></span><br><span class="line">    cats = coco_api.loadCats(cat_ids)  <span class="comment"># [&#123;&#x27;supercategory&#x27;: &#x27;person&#x27;, &#x27;id&#x27;: 1, &#x27;name&#x27;: &#x27;person&#x27;&#125;, &#123;&#x27;supercategory&#x27;: &#x27;vehicle&#x27;, &#x27;id&#x27;: 2, &#x27;name&#x27;: &#x27;bicycle&#x27;&#125;, ...]</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 得到 category 对应的 name</span></span><br><span class="line">    thing_classes = [c[<span class="string">&quot;name&quot;</span>] <span class="keyword">for</span> c <span class="keyword">in</span> <span class="built_in">sorted</span>(cats, key=<span class="keyword">lambda</span> x: x[<span class="string">&quot;id&quot;</span>])]  <span class="comment"># [&#x27;person&#x27;, &#x27;bicycle&#x27;, &#x27;car&#x27;, &#x27;motorcycle&#x27;, &#x27;airplane&#x27;, &#x27;bus&#x27;, &#x27;train&#x27;, &#x27;truck&#x27;, ...]</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 更新对应的 meta info</span></span><br><span class="line">    meta.thing_classes = thing_classes</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 将coco中不连续的category id给映射到[0, 80)这个连续的区间内</span></span><br><span class="line">    id_map = &#123;v: i <span class="keyword">for</span> i, v <span class="keyword">in</span> <span class="built_in">enumerate</span>(cat_ids)&#125;  <span class="comment"># &#123;1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7, 9: 8, 10: 9, 11: 10, 13: 11, ... &#125;</span></span><br><span class="line">    meta.thing_dataset_id_to_contiguous_id = id_map</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 得到对应的img_ids, 并且将id按照升序排序</span></span><br><span class="line">    img_ids = <span class="built_in">sorted</span>(coco_api.imgs.keys())</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># imgs is a list of dicts, each looks something like:</span></span><br><span class="line">    <span class="comment"># &#123;&#x27;license&#x27;: 4,</span></span><br><span class="line">    <span class="comment">#  &#x27;url&#x27;: &#x27;http://farm6.staticflickr.com/5454/9413846304_881d5e5c3b_z.jpg&#x27;,</span></span><br><span class="line">    <span class="comment">#  &#x27;file_name&#x27;: &#x27;COCO_val2014_000000001268.jpg&#x27;,</span></span><br><span class="line">    <span class="comment">#  &#x27;height&#x27;: 427,</span></span><br><span class="line">    <span class="comment">#  &#x27;width&#x27;: 640,</span></span><br><span class="line">    <span class="comment">#  &#x27;date_captured&#x27;: &#x27;2013-11-17 05:57:24&#x27;,</span></span><br><span class="line">    <span class="comment">#  &#x27;id&#x27;: 1268&#125;</span></span><br><span class="line">    imgs = coco_api.loadImgs(img_ids)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># anns is a list[list[dict]], where each dict is an annotation</span></span><br><span class="line">    <span class="comment"># record for an object. The inner list enumerates the objects in an image</span></span><br><span class="line">    <span class="comment"># and the outer list enumerates over images. Example of anns[0]:</span></span><br><span class="line">    <span class="comment"># [&#123;&#x27;segmentation&#x27;: [[192.81,</span></span><br><span class="line">    <span class="comment">#     247.09,</span></span><br><span class="line">    <span class="comment">#     ...</span></span><br><span class="line">    <span class="comment">#     219.03,</span></span><br><span class="line">    <span class="comment">#     249.06]],</span></span><br><span class="line">    <span class="comment">#   &#x27;area&#x27;: 1035.749,</span></span><br><span class="line">    <span class="comment">#   &#x27;iscrowd&#x27;: 0,</span></span><br><span class="line">    <span class="comment">#   &#x27;image_id&#x27;: 1268,</span></span><br><span class="line">    <span class="comment">#   &#x27;bbox&#x27;: [192.81, 224.8, 74.73, 33.43],</span></span><br><span class="line">    <span class="comment">#   &#x27;category_id&#x27;: 16,</span></span><br><span class="line">    <span class="comment">#   &#x27;id&#x27;: 42986&#125;,</span></span><br><span class="line">    <span class="comment">#  ...]</span></span><br><span class="line">    <span class="comment"># 这是一个 list[list[dict]], 其中里面的 list[dict] 表示的是每张图像上的 annotations</span></span><br><span class="line">    <span class="comment"># 外层的list表示的是不同图片的annotation</span></span><br><span class="line">    anns = [coco_api.imgToAnns[img_id] <span class="keyword">for</span> img_id <span class="keyword">in</span> img_ids]</span><br><span class="line">    total_num_valid_anns = <span class="built_in">sum</span>([<span class="built_in">len</span>(x) <span class="keyword">for</span> x <span class="keyword">in</span> anns])</span><br><span class="line">    total_num_anns = <span class="built_in">len</span>(coco_api.anns)</span><br><span class="line"></span><br><span class="line">    dataset_dicts = []</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 这边生成了图像-标注的一个list</span></span><br><span class="line">    <span class="comment"># [(img1, ann1), (img2, ann2), ...]</span></span><br><span class="line">    imgs_anns = <span class="built_in">list</span>(<span class="built_in">zip</span>(imgs, anns))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (img_dict, anno_dict_list) <span class="keyword">in</span> imgs_anns:</span><br><span class="line">        <span class="comment"># record 存储的是一些图片的基础信息</span></span><br><span class="line">        record = &#123;&#125;</span><br><span class="line">        record[<span class="string">&quot;file_name&quot;</span>] = os.path.join(image_root, img_dict[<span class="string">&quot;file_name&quot;</span>])</span><br><span class="line">        record[<span class="string">&quot;height&quot;</span>] = img_dict[<span class="string">&quot;height&quot;</span>]</span><br><span class="line">        record[<span class="string">&quot;width&quot;</span>] = img_dict[<span class="string">&quot;width&quot;</span>]</span><br><span class="line">        image_id = record[<span class="string">&quot;image_id&quot;</span>] = img_dict[<span class="string">&quot;id&quot;</span>]</span><br><span class="line"></span><br><span class="line">        objs = []</span><br><span class="line">        <span class="comment"># objs 存储的是annotation, 需要对annotation进行一部分预处理</span></span><br><span class="line">        <span class="keyword">for</span> anno <span class="keyword">in</span> anno_dict_list:</span><br><span class="line">            </span><br><span class="line">            <span class="comment"># anno是一张图片里的一个annotation, 是一个dict</span></span><br><span class="line">            obj = &#123;key: anno[key] <span class="keyword">for</span> key <span class="keyword">in</span> ann_keys <span class="keyword">if</span> key <span class="keyword">in</span> anno&#125;</span><br><span class="line">            </span><br><span class="line">            <span class="comment"># get的时候可以传入一个默认值, 如果不存在这个key则自动返回默认值</span></span><br><span class="line">            segm = anno.get(<span class="string">&quot;segmentation&quot;</span>, <span class="literal">None</span>)</span><br><span class="line">            <span class="keyword">if</span> segm:</span><br><span class="line">                <span class="comment"># list[list[float]] or dict(RLE)</span></span><br><span class="line">                <span class="comment"># 对两种类型的segmentation mask进行处理</span></span><br><span class="line">                ...</span><br><span class="line">                obj[<span class="string">&quot;segmentation&quot;</span>] = segm</span><br><span class="line">            </span><br><span class="line">            obj[<span class="string">&quot;bbox_mode&quot;</span>] = BoxMode.XYWH_ABS</span><br><span class="line">            </span><br><span class="line">            <span class="comment"># 如果有事先定义好的id_map</span></span><br><span class="line">            <span class="keyword">if</span> id_map:</span><br><span class="line">                annotation_category_id = obj[<span class="string">&quot;category_id&quot;</span>]</span><br><span class="line">                <span class="comment"># 将这个id映射到连续的区间上</span></span><br><span class="line">                obj[<span class="string">&quot;category_id&quot;</span>] = id_map[annotation_category_id]</span><br><span class="line">            objs.append(obj)</span><br><span class="line">        record[<span class="string">&quot;annotations&quot;</span>] = objs</span><br><span class="line">        dataset_dicts.append(record)</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># list[dict]</span></span><br><span class="line">    <span class="comment"># 这个dict里对应的是每张 image 的信息及其的 annotations</span></span><br><span class="line">    <span class="keyword">return</span> dataset_dicts</span><br></pre></td></tr></table></figure>
+<h3 id="register-coco-instances">register_coco_instances</h3>
+<p>将coco数据集注册到DatasetCatelog以及MetadataCatelog中</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">register_coco_instances</span>(<span class="params">name, metadata, json_file, image_root</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Register a dataset in COCO&#x27;s json annotation format for</span></span><br><span class="line"><span class="string">    instance detection, instance segmentation and keypoint detection.</span></span><br><span class="line"><span class="string">    (i.e., Type 1 and 2 in http://cocodataset.org/#format-data.</span></span><br><span class="line"><span class="string">    `instances*.json` and `person_keypoints*.json` in the dataset).</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    This is an example of how to register a new dataset.</span></span><br><span class="line"><span class="string">    You can do something similar to this function, to register new datasets.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        name (str): the name that identifies a dataset, e.g. &quot;coco_2014_train&quot;.</span></span><br><span class="line"><span class="string">        metadata (dict): extra metadata associated with this dataset.  You can</span></span><br><span class="line"><span class="string">            leave it as an empty dict.</span></span><br><span class="line"><span class="string">        json_file (str): path to the json instance annotation file.</span></span><br><span class="line"><span class="string">        image_root (str or path-like): directory which contains all the images.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">isinstance</span>(name, <span class="built_in">str</span>), name</span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">isinstance</span>(json_file, (<span class="built_in">str</span>, os.PathLike)), json_file</span><br><span class="line">    <span class="keyword">assert</span> <span class="built_in">isinstance</span>(image_root, (<span class="built_in">str</span>, os.PathLike)), image_root</span><br><span class="line">    <span class="comment"># 1. register a function which returns dicts</span></span><br><span class="line">    DatasetCatalog.register(name, <span class="keyword">lambda</span>: load_coco_json(json_file, image_root, name))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2. Optionally, add metadata about this dataset,</span></span><br><span class="line">    <span class="comment"># since they might be useful in evaluation, visualization or logging</span></span><br><span class="line">    MetadataCatalog.get(name).<span class="built_in">set</span>(</span><br><span class="line">        json_file=json_file, image_root=image_root, evaluator_type=<span class="string">&quot;coco&quot;</span>, **metadata</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+<h3 id="Combine-with-DatasetCatelog">Combine with DatasetCatelog</h3>
+<p>和DatasetCatelog结合使用的话就是:</p>
+<ul>
+<li>将<code>load_coco_json</code>这个方法注册到<code>DatasetCatelog</code>中</li>
+<li>通过<code>DatasetCatelog</code>的<code>get(name)</code>方法调用并得到在<code>load_coco_json</code>中返回的<code>list[dict]</code></li>
+</ul>
+<p><strong>Simple Example</strong>:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> detectron2.data <span class="keyword">import</span> DatasetCatalog</span><br><span class="line"></span><br><span class="line">coco_2014_val = DatasetCatalog.get(<span class="string">&quot;coco_2017_val&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">type</span>(coco_2014_val))  <span class="comment"># &lt;class &#x27;list&#x27;&gt;</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(coco_2014_val))  <span class="comment"># 5000</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">type</span>(coco_2014_val[<span class="number">0</span>]))  <span class="comment"># &lt;class &#x27;dict&#x27;&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 每个图片的对应info, 包括一些基本信息以及这张图片包含的所有的annotations</span></span><br><span class="line"><span class="built_in">print</span>(coco_2014_val[<span class="number">0</span>].keys())  </span><br><span class="line"><span class="comment"># dict_keys([&#x27;file_name&#x27;, &#x27;height&#x27;, &#x27;width&#x27;, &#x27;image_id&#x27;, &#x27;annotations&#x27;])</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 每个instance的annotation</span></span><br><span class="line"><span class="built_in">print</span>(coco_2014_val[<span class="number">0</span>][<span class="string">&quot;annotations&quot;</span>][<span class="number">0</span>].keys())</span><br><span class="line"><span class="comment"># dict_keys([&#x27;iscrowd&#x27;, &#x27;bbox&#x27;, &#x27;category_id&#x27;, &#x27;segmentation&#x27;, &#x27;bbox_mode&#x27;])</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Detectron2/" rel="tag"># Detectron2</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/05/detectron2-data-load-2/" rel="prev" title="Detectron2 Learning Notes(13): Data Load Part-2">
+      <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(13): Data Load Part-2
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/06/detectron2-dataset-from-list/" rel="next" title="Detectron2 Learning Notes(14): DatasetFromList">
+      Detectron2 Learning Notes(14): DatasetFromList <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#load-coco-json"><span class="nav-number">1.1.</span> <span class="nav-text">load_coco_json</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#register-coco-instances"><span class="nav-number">1.2.</span> <span class="nav-text">register_coco_instances</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Combine-with-DatasetCatelog"><span class="nav-number">1.3.</span> <span class="nav-text">Combine with DatasetCatelog</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">219k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">3:19</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
