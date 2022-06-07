@@ -20,20 +20,22 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="本文仅仅是简单记录一下torch.optim的使用, 对一些关键的内容进行理解, 但并没有太涉及到底层的原理实现">
+  <meta name="description" content="本文学习了Pytorch中的Dataset, Sampler, 并以detectron2中实现的dataset与sampler为例, 主要包括以下几个内容:  Iterable与Iterator的概念 Pytorch中的IterableDataset">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Pytorch Learning Notes(5): torch.optim">
-<meta property="og:url" content="http://example.com/2022/04/16/pytorch-optim/index.html">
+<meta property="og:title" content="Detectron2: Pytorch Dataset &amp; Sampler (1)">
+<meta property="og:url" content="http://example.com/2022/06/07/pytorch-dataset-sampler-1/index.html">
 <meta property="og:site_name" content="RenTianhe&#39;s Blog">
-<meta property="og:description" content="本文仅仅是简单记录一下torch.optim的使用, 对一些关键的内容进行理解, 但并没有太涉及到底层的原理实现">
+<meta property="og:description" content="本文学习了Pytorch中的Dataset, Sampler, 并以detectron2中实现的dataset与sampler为例, 主要包括以下几个内容:  Iterable与Iterator的概念 Pytorch中的IterableDataset">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2022-04-16T05:16:17.000Z">
-<meta property="article:modified_time" content="2022-05-04T01:25:56.664Z">
+<meta property="og:image" content="http://example.com/2022/06/07/pytorch-dataset-sampler-1/iterable_iterator.png">
+<meta property="article:published_time" content="2022-06-07T04:43:33.000Z">
+<meta property="article:modified_time" content="2022-06-07T16:14:14.717Z">
 <meta property="article:author" content="Ren Tianhe">
-<meta property="article:tag" content="Pytorch">
+<meta property="article:tag" content="Detectron2">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/06/07/pytorch-dataset-sampler-1/iterable_iterator.png">
 
-<link rel="canonical" href="http://example.com/2022/04/16/pytorch-optim/">
+<link rel="canonical" href="http://example.com/2022/06/07/pytorch-dataset-sampler-1/">
 
 
 <script id="page-configurations">
@@ -46,7 +48,7 @@
   };
 </script>
 
-  <title>Pytorch Learning Notes(5): torch.optim | RenTianhe's Blog</title>
+  <title>Detectron2: Pytorch Dataset & Sampler (1) | RenTianhe's Blog</title>
   
 
 
@@ -177,7 +179,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2022/04/16/pytorch-optim/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/07/pytorch-dataset-sampler-1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -190,7 +192,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Pytorch Learning Notes(5): torch.optim
+          Detectron2: Pytorch Dataset & Sampler (1)
         </h1>
 
         <div class="post-meta">
@@ -200,14 +202,14 @@
               </span>
               <span class="post-meta-item-text">Posted on</span>
 
-              <time title="Created: 2022-04-16 13:16:17" itemprop="dateCreated datePublished" datetime="2022-04-16T13:16:17+08:00">2022-04-16</time>
+              <time title="Created: 2022-06-07 12:43:33" itemprop="dateCreated datePublished" datetime="2022-06-07T12:43:33+08:00">2022-06-07</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-05-04 09:25:56" itemprop="dateModified" datetime="2022-05-04T09:25:56+08:00">2022-05-04</time>
+                <time title="Modified: 2022-06-08 00:14:14" itemprop="dateModified" datetime="2022-06-08T00:14:14+08:00">2022-06-08</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -215,7 +217,7 @@
               </span>
               <span class="post-meta-item-text">In</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Pytorch/" itemprop="url" rel="index"><span itemprop="name">Pytorch</span></a>
+                  <a href="/categories/Detectron2/" itemprop="url" rel="index"><span itemprop="name">Detectron2</span></a>
                 </span>
             </span>
 
@@ -232,14 +234,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">Symbols count in article: </span>
-              <span>1.9k</span>
+              <span>887</span>
             </span>
             <span class="post-meta-item" title="Reading time">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">Reading time &asymp;</span>
-              <span>2 mins.</span>
+              <span>1 mins.</span>
             </span>
 
         </div>
@@ -251,63 +253,49 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>本文仅仅是简单记录一下torch.optim的使用, 对一些关键的内容进行理解, 但并没有太涉及到底层的原理实现</p>
+        <p>本文学习了Pytorch中的Dataset, Sampler, 并以detectron2中实现的dataset与sampler为例, 主要包括以下几个内容:</p>
+<ul>
+<li>Iterable与Iterator的概念</li>
+<li>Pytorch中的IterableDataset</li>
+</ul>
 <span id="more"></span>
-<h2 id="Contents-2">Contents</h2>
+<h2 id="Contents">Contents</h2>
 <ul>
 <li><a href="#contents">Contents</a>
 <ul>
-<li><a href="#pytorch%E4%B8%ADoptimizer%E9%87%8C%E7%BB%B4%E6%8A%A4%E7%9A%84info">Pytorch中Optimizer里维护的info</a>
-<ul>
-<li><a href="#1-defaults">1. defaults</a></li>
-<li><a href="#2-state">2. state</a></li>
-<li><a href="#3-param_groups">3. param_groups</a></li>
-</ul>
-</li>
-<li><a href="#optim%E9%87%8C%E7%9A%84param_groups%E6%98%AF%E5%A6%82%E4%BD%95%E5%92%8C%E7%BD%91%E7%BB%9C%E6%9D%83%E9%87%8D%E5%AF%B9%E5%BA%94%E7%9A%84">optim里的param_groups是如何和网络权重对应的</a></li>
+<li><a href="#iterable-vs-iterator">Iterable vs. Iterator</a></li>
+<li><a href="#iterabledataset">IterableDataset</a></li>
 </ul>
 </li>
 <li><a href="#reference">Reference</a></li>
 </ul>
-<h3 id="Pytorch中Optimizer里维护的info">Pytorch中Optimizer里维护的info</h3>
-<p>在Pytorch的optimizer类中的序列化行为<code>__getstate__</code>方法中已经列出了需要维护的状态:</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">__getstate__</span>(<span class="params">self</span>):</span></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">&#x27;defaults&#x27;</span>: self.defaults,</span><br><span class="line">        <span class="string">&#x27;state&#x27;</span>: self.state,</span><br><span class="line">        <span class="string">&#x27;param_groups&#x27;</span>: self.param_groups,</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>分别为<code>defaults</code>, <code>state</code>和<code>param_groups</code></p>
-<h4 id="1-defaults">1. defaults</h4>
-<p><code>defaults</code>是一个字典, 定义全局的优化器参数, 如果没有显示指定入参的话, 就会用优化器的默认参数, 以下是SGD的默认参数:</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">&#x27;lr&#x27;</span>: <span class="number">1.0</span>, <span class="string">&#x27;momentum&#x27;</span>: <span class="number">0.9</span>, <span class="string">&#x27;dampening&#x27;</span>: <span class="number">0</span>, <span class="string">&#x27;weight_decay&#x27;</span>: <span class="number">0</span>, <span class="string">&#x27;nesterov&#x27;</span>: <span class="literal">False</span>&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Iterable-vs-Iterator">Iterable vs. Iterator</h3>
+<p>简单概念:</p>
 <ul>
-<li><code>lr</code>: 学习率</li>
-<li><code>momentum</code>: 动量参数</li>
-<li><code>dampening</code>: 用于动量SGD中调节当前梯度权重的参数</li>
-<li><code>weight decay</code>: L2 penalty系数</li>
-<li><code>nesterov</code>: 是否启用<code>nesterov</code>动量</li>
+<li>Iterable对象: 可以把自己成员一个个返回(或者遍历)的对象, 例如list, tuple, dict等</li>
+<li>Iterator对象: 用来迭代的工具, 可以通过<code>next()</code>调用实现对元素的遍历, 如果没有元素可以遍历的话会引起<code>StopIteration exception</code>, 其实现的<code>__iter__</code>方法需返回自身</li>
+<li>Python中内置的list, tuple, dict都可以被迭代(Iterable), 但他们本身不是迭代器(Iterator), 可以用<code>iter()</code>函数获取他们的迭代器</li>
 </ul>
-<h4 id="2-state">2. state</h4>
-<p><code>state</code>是一个<code>defaultdict</code>类型:</p>
+<img src="/2022/06/07/pytorch-dataset-sampler-1/iterable_iterator.png" class>
+<p>从使用角度来说:</p>
 <ul>
-<li><code>key</code>是<code>Parameter</code></li>
-<li><code>value</code>是一个<code>dict</code>, 具体取决于优化器种类, 在SGD中是<code>&#123;&quot;momentum_buffer&quot;: [tensor,...]&#125;</code>, 存放了一些历史的梯度信息</li>
+<li>可以用for循环遍历的, 都是Iterable</li>
+<li>可以使用next来遍历的, 都是Iterator</li>
 </ul>
-<h4 id="3-param-groups">3. param_groups</h4>
-<p>Optimizer的params传参最终是需要维护在<code>self.param_groups</code>中, 首先params的类型必须是<code>list</code>或者<code>迭代器</code>, 不能是<code>Tensor</code>, <code>dict</code>, <code>set</code>等类型, 如果传入的是<code>迭代器</code>, 例如<code>model.parameters()</code>, 则会立刻转换为<code>list</code>, 而list又有两种形式:</p>
+<p>从实现角度来说:</p>
 <ul>
-<li><code>list(dict)</code>: 如果是这种情况的话说明用户<strong>显示地传入了分组的parameters</strong>, 形式看起来如: <code>[&#123;'params': [tensor, ...], 超参1: 超参1的值&#125;, &#123;'params': [tensor, ...], 超参2: 超参2的值&#125;, ...]</code></li>
-<li><code>list(Tensor)</code>, 如果list中的每个值都是Tensor, 而不是dict类型的话, 则会被转换为<code>list(dict)</code>的形式, 看起来如: <code>[&#123;'params': [tensor, ...]&#125;]</code>就相当于只有一个<code>param_groups</code>.</li>
+<li>Iterable可以只实现<code>__iter__</code>或者<code>__getitem__</code></li>
+<li>Iterator的<code>__iter__</code>需要返回自身, 并且<code>__next__</code>用于实现返回容器中下一个元素的迭代器</li>
 </ul>
-<p><strong>Notes</strong> 如果有多个<code>parameter group</code>的话, 则需要检查两两之间是否包含了重复的参数</p>
-<h3 id="optim里的param-groups是如何和网络权重对应的">optim里的param_groups是如何和网络权重对应的</h3>
-<p>我们可以用一个简单的例子来打印一下权重看看:</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torch.nn.functional <span class="keyword">as</span> F</span><br><span class="line"></span><br><span class="line"><span class="comment"># 这里用一个简单的Linear层作为我们的网络</span></span><br><span class="line">net = nn.Linear(<span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打印一下权重的地址</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">id</span>(net.weight))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打印一下param_group的权重的地址</span></span><br><span class="line">optim = torch.optim.SGD(net.parameters(), lr=<span class="number">0.4</span>)</span><br><span class="line"><span class="keyword">for</span> param_group <span class="keyword">in</span> optim.param_groups:</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">id</span>(param_group[<span class="string">&quot;params&quot;</span>][<span class="number">0</span>]))</span><br></pre></td></tr></table></figure>
-<p>得到以下输出:</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">140181719444944</span></span><br><span class="line"><span class="number">140181719444944</span></span><br></pre></td></tr></table></figure>
-<p>我们会发现<code>param_groups</code>中存的是<code>weight</code>的引用, 而不是单纯copy了一份weight过来, 这样可以节省内存使用, 并且在更新的时候也会同步更新到网络权重里</p>
-<h2 id="Reference-2">Reference</h2>
+<p><strong>Notes:</strong> 调用 for 循环遍历 Iterables 的时候会临时创建针对遍历对象的 Iterator</p>
+<h3 id="IterableDataset">IterableDataset</h3>
+<p>Pytorch可以通过构造IterableDataset来流式读取文件夹, 这样做的好处是, 可以不用知道数据集的所有数据, 一般针对数据集比较大的情况下使用:</p>
+<h2 id="Reference">Reference</h2>
 <ul>
-<li><a target="_blank" rel="noopener" href="https://blog.51cto.com/u_15047489/2619277">Pytorch 优化器源码解析和学习率调整策略</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/346205754?utm_medium=social&amp;utm_oi=726437970134970368">PyTorch 源码解读之 torch.optim：优化算法接口详解</a></li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/150023323">Pytorch的优化器</a></li>
-<li><a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/optim.html">Pytorch官方optimizer文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/346832873">Python 中 iterator 和 iterable 的区别是什么？</a></li>
+<li><a target="_blank" rel="noopener" href="https://nvie.com/posts/iterators-vs-generators/">Iterables vs. Iterators vs. Generators</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/270028097">PyTorch源码解析与实践（1）：数据加载Dataset，Sampler与DataLoader</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/266512848">彻底搞懂Python的__iter__和__next__，Iterable和Iteration</a></li>
 </ul>
 
     </div>
@@ -318,7 +306,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Pytorch/" rel="tag"># Pytorch</a>
+              <a href="/tags/Detectron2/" rel="tag"># Detectron2</a>
           </div>
 
         
@@ -327,13 +315,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2022/04/14/pytorch-named-module/" rel="prev" title="Pytorch Learning Notes(4): named_parameters, named_children, named_modules">
-      <i class="fa fa-chevron-left"></i> Pytorch Learning Notes(4): named_parameters, named_children, named_modules
+    <a href="/2022/06/06/detectron2-dataset-from-list/" rel="prev" title="Detectron2 Learning Notes(14): DatasetFromList">
+      <i class="fa fa-chevron-left"></i> Detectron2 Learning Notes(14): DatasetFromList
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2022/05/03/anchor-box/" rel="next" title="Object Detection (2): Anchor Box (未完结)">
-      Object Detection (2): Anchor Box (未完结) <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -392,7 +377,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-2"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Pytorch%E4%B8%ADOptimizer%E9%87%8C%E7%BB%B4%E6%8A%A4%E7%9A%84info"><span class="nav-number">1.1.</span> <span class="nav-text">Pytorch中Optimizer里维护的info</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-defaults"><span class="nav-number">1.1.1.</span> <span class="nav-text">1. defaults</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-state"><span class="nav-number">1.1.2.</span> <span class="nav-text">2. state</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-param-groups"><span class="nav-number">1.1.3.</span> <span class="nav-text">3. param_groups</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#optim%E9%87%8C%E7%9A%84param-groups%E6%98%AF%E5%A6%82%E4%BD%95%E5%92%8C%E7%BD%91%E7%BB%9C%E6%9D%83%E9%87%8D%E5%AF%B9%E5%BA%94%E7%9A%84"><span class="nav-number">1.2.</span> <span class="nav-text">optim里的param_groups是如何和网络权重对应的</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference-2"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Iterable-vs-Iterator"><span class="nav-number">1.1.</span> <span class="nav-text">Iterable vs. Iterator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IterableDataset"><span class="nav-number">1.2.</span> <span class="nav-text">IterableDataset</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
