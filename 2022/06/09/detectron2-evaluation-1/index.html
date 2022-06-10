@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文主要介绍了Detectron2中的COCO Evaluation的使用, 本文的内容主要包括:  用于COCO测试的文件的格式 COCO的测试结果 COCO Eval API的简单使用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Detectron2 COCO Evaluation - COCO Eval API">
+<meta property="og:url" content="http://example.com/2022/06/09/detectron2-evaluation-1/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文主要介绍了Detectron2中的COCO Evaluation的使用, 本文的内容主要包括:  用于COCO测试的文件的格式 COCO的测试结果 COCO Eval API的简单使用">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-06-09T02:33:13.000Z">
+<meta property="article:modified_time" content="2022-06-09T03:50:51.750Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Object Detection">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2022/06/09/detectron2-evaluation-1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Detectron2 COCO Evaluation - COCO Eval API | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">60</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/09/detectron2-evaluation-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Detectron2 COCO Evaluation - COCO Eval API
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-06-09 10:33:13 / Modified: 11:50:51" itemprop="dateCreated datePublished" datetime="2022-06-09T10:33:13+08:00">2022-06-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Object-Detection/" itemprop="url" rel="index"><span itemprop="name">Object Detection</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>12k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>11 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要介绍了Detectron2中的COCO Evaluation的使用, 本文的内容主要包括:</p>
+<ul>
+<li>用于COCO测试的文件的格式</li>
+<li>COCO的测试结果</li>
+<li>COCO Eval API的简单使用</li>
+</ul>
+<span id="more"></span>
+<h2 id="Contents">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#%E7%94%A8%E4%BA%8Ecoco-api%E6%B5%8B%E8%AF%95%E7%9A%84%E7%BB%93%E6%9E%9C%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F">用于COCO API测试的结果文件格式</a>
+<ul>
+<li><a href="#captions">captions</a></li>
+<li><a href="#object-detection">object detection</a></li>
+<li><a href="#instance-segmentation--key-points">Instance Segmentation &amp; Key Points</a></li>
+</ul>
+</li>
+<li><a href="#coco-eval%E7%9A%84%E8%AF%84%E4%BC%B0%E7%BB%93%E6%9E%9C">COCO Eval的评估结果</a></li>
+<li><a href="#%E4%BD%BF%E7%94%A8coco-api%E8%BF%9B%E8%A1%8C%E8%AF%84%E4%BC%B0">使用COCO API进行评估</a></li>
+</ul>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h3 id="用于COCO-API测试的结果文件格式">用于COCO API测试的结果文件格式</h3>
+<h4 id="captions">captions</h4>
+<p>文件以<code>list(dict)</code>的形式存储, dict的key包括<code>image_id</code>以及<code>captions</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[&#123;<span class="string">&quot;image_id&quot;</span>: <span class="number">391895</span>, <span class="string">&quot;caption&quot;</span>: <span class="string">&quot;Man riding a motor bike on a dirt road on the countryside.&quot;</span>&#125;, &#123;<span class="string">&quot;image_id&quot;</span>: <span class="number">522418</span>, <span class="string">&quot;caption&quot;</span>: <span class="string">&quot;A woman wearing a net on her head cutting a cake. &quot;</span>&#125;, </span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>: <span class="number">184613</span>, <span class="string">&quot;caption&quot;</span>: <span class="string">&quot;a young boy barefoot holding an umbrella touching the horn of a cow&quot;</span>&#125;, &#123;<span class="string">&quot;image_id&quot;</span>: <span class="number">318219</span>, <span class="string">&quot;caption&quot;</span>: <span class="string">&quot;A young boy stares up at the computer monitor.&quot;</span>&#125;, </span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>: <span class="number">554625</span>, <span class="string">&quot;caption&quot;</span>: <span class="string">&quot;A group of people sitting at desk using computers.&quot;</span>&#125;, &#123;<span class="string">&quot;image_id&quot;</span>: <span class="number">397133</span>, <span class="string">&quot;caption&quot;</span>: <span class="string">&quot;A person standing by a stove in a kitchen.&quot;</span>&#125;,]</span><br></pre></td></tr></table></figure>
+<h4 id="object-detection">object detection</h4>
+<p>文件同样以<code>list(dict)</code>的形式存放, dict的key包括<code>image_id</code>, <code>category_id</code>, <code>bbox</code>, <code>score</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">42</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">18</span>,<span class="string">&quot;bbox&quot;</span>:[<span class="number">258.15</span>,<span class="number">41.29</span>,<span class="number">348.26</span>,<span class="number">243.78</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.236</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">73</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">11</span>,<span class="string">&quot;bbox&quot;</span>:[<span class="number">61</span>,<span class="number">22.75</span>,<span class="number">504</span>,<span class="number">609.67</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.318</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">73</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">4</span>,<span class="string">&quot;bbox&quot;</span>:[<span class="number">12.66</span>,<span class="number">3.32</span>,<span class="number">268.6</span>,<span class="number">271.91</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.726</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">74</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">18</span>,<span class="string">&quot;bbox&quot;</span>:[<span class="number">87.87</span>,<span class="number">276.25</span>,<span class="number">296.42</span>,<span class="number">103.18</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.546</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">74</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">2</span>,<span class="string">&quot;bbox&quot;</span>:[<span class="number">0</span>,<span class="number">3.66</span>,<span class="number">142.15</span>,<span class="number">312.4</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.3</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">74</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">1</span>,<span class="string">&quot;bbox&quot;</span>:[<span class="number">296.55</span>,<span class="number">93.96</span>,<span class="number">18.42</span>,<span class="number">58.83</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.407</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">74</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">1</span>,<span class="string">&quot;bbox&quot;</span>:[<span class="number">328.94</span>,<span class="number">97.05</span>,<span class="number">13.55</span>,<span class="number">25.93</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.611</span>&#125;]</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>score</code>用于计算mAP</li>
+</ul>
+<h4 id="Instance-Segmentation-Key-Points">Instance Segmentation &amp; Key Points</h4>
+<ul>
+<li>Instance Segmentation</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">42</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">18</span>,<span class="string">&quot;segmentation&quot;</span>:&#123;<span class="string">&quot;size&quot;</span>:[<span class="number">478</span>,<span class="number">640</span>],<span class="string">&quot;counts&quot;</span>:<span class="string">&quot;VQi31m&gt;0O2N100O100O2N100O10001N101O1N2O1O2M2O1O1N3N1O1N2O2N1N2O1O1N3N1O1N2O2N1N2O1O2M2O1O1M3M4K4M3M3M4L3M3M3M4L3L4M3M3M4L3M3M3M4L3O1N2N101N1O2O0O2N101N1O2O0O2N101N1O2O0O1O2N101N1O2O0O2N101N1O2O0O2N101N1O2O0O1O2O0O2N101N1O2O0O2N101N101O001O1O001O1N2O001O1O1O001O1O1O001O1O001O1O1N101O1O1O001O1O1O001O1O1O001O1N2O001O1O001O1O1O001O1O1O001O1O1N010000O10000O10000O10000O100O010O100O100O100O10000O100O100O10O0100O100O100O100O1O100O100O1O010O100O1O2O0O2N101N101N1O2O1N1O2O0O2O0O2N2O0O2N101N101N2N101N101N1O2O1N1O2O0O20O2O0O2O001N101N100O2O001N101N101N101O0O101N101N101N101O0O101N101N1010O010O010O00010O0O2N1O2N1O2N1O2N1O2N1O2N1O2N1O2N1O2N1O2N1O2N1O2N1O2N1O2N1O2N1O2M2M4L3M4L3M4RNREGP;5UEGo:3XEHk:4ZEHj:2\\EJg:1_EKe:0`ELc:OcEMa:NdEN_:MgE0\\:JjE2Y:JlE2X:HnE4a&lt;LZd?&quot;</span>&#125;,<span class="string">&quot;score&quot;</span>:<span class="number">0.236</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">73</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">11</span>,<span class="string">&quot;segmentation&quot;</span>:&#123;<span class="string">&quot;size&quot;</span>:[<span class="number">640</span>,<span class="number">565</span>],<span class="string">&quot;counts&quot;</span>:<span class="string">&quot;]aV1;Yc0f0[Oe0[Of0ZOe0[Of0YOf0^Oc0D;E;E&lt;D;E&lt;D;E&lt;D;E5K2N2N2N2N3M2N2N2N2N2N2N2N3M2M3N2N2N2N2N2N3M1O1O2N1O1O1O2N1O1O2N1O1O1O2N1O1O2N1O1O1O2N1O1O2N1O1O1O2M2O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O1O001N2O1QMeDXM\\;c2oDVMR;j2SEPMn:o2XEkLi:U3ZEgLg:X3[EfLf:Y3\\EeLe:[3\\EcLe:\\3]EcLc:]3]EcLc:\\3_EcLa:]3`EbL`:]3bEbL^:]3dEbL[:_3fE`LY:`3iE_LW:a3jE^LU:b3lE^LS:b3oE]LP:c3RF]Lm9b3UF]Lj9c3XF\\Lg9d3[F[Ld9g3\\FXLc9i3]FWLc9j3]FULb9l3_FSL`9n3aFQL^9Q4bFnK^9R4cFmK\\9U4dFkKZ9V4gFiKX9Y4gFgKX9Z4iFeKW9\\4iFcKV9^4kFaKT9a4lF^KS9c4nF\\KR9e4mF[KR9f4oFYKP9i4PGVKo8k4RGTKm8n4RGSKm8m4TGoJn8R5SGhJQ9Z5oF`JU9a5kFZJZ9g5^22N2N2N2O2M2N2N2N2O1N2N2N3N1N2N2N2N2O1N2N2N3N1N2N2N2N2O1N2N2N2O1N3M2N2N2O1N2N2N2O1N1O2N1O101N1O2N100O2M2M4M2N3L3N2M4M2N3L3N2N3L3N3L3N2N3L3N3L3N2N3L3N3L\\MQG]Jm8c5XGZJf8g5_GVJ]8k5hGRJV8n5PHoIX7f6mHWIS7h6RITIn6j6WITIg6l6^IPIb6P7aInH^6R7fIjHY6W7jIfHV6Z7nIcHP6^7SJ_Hm5a7WJ\\Hh5c7\\JZHc5g7aJUH_5k7dJSH[5m7iJoGV5R8mJkGS5U8nJjGR5V8oJiGP5W8RKhGn4X8SKgGl4Z8UKfGj4Z8WKeGi4[8XKdGg4]8ZKbGf4^8[KaGe4_8\\K`Gc4`8_K_Ga4a8`K^G`4b8aK]G^4d8cK[G]4e8dKZG\\4f8eKYGZ4h8gKWGY4h8iKWGV4j8kKUGU4k8lKTGT4l8mKSGR4n8oKRGP4n8QLQGo3P9_3101O0O101N101N100O2N101N1O101N101N1O100O0001O010O00001O000010O01O00001O000010O01O00010O01O010O0010O010O00010O01O010O010O0010O01O010O010O0001N10001O000O101O00001N1000001O0O10001O00000010O0010O01O0010O01O0010O00010O01O0010O01O1O100O1O00100O1O100O1O1O100O1O1O100O1O010O1O1O01O01O0010O01O0010O01O010O001O010O0000100O00100O001O100O001O10O01O1O10O01O1O0O2N2N2N1O2N2N1O2N2N2N1O2M3N2N2N2N2N2N2N2N2N2N2N1O2N2N2N2N2N2N2N2N2N2N2O1N2N2N3N1N2N2N3N1N2N2O2M2N2N2O2M2N2N2O2M2N2N2O2M2NUO&quot;</span>&#125;,<span class="string">&quot;score&quot;</span>:<span class="number">0.318</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">73</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">4</span>,<span class="string">&quot;segmentation&quot;</span>:&#123;<span class="string">&quot;size&quot;</span>:[<span class="number">640</span>,<span class="number">565</span>],<span class="string">&quot;counts&quot;</span>:<span class="string">&quot;hY8k2U&gt;P3]Nc1WOi000001O0000001O00001O00001O0000001O00001O00001O0O10001O000O2O00001N1000001N10001O0O10001O0O101O00001N1000001N10001O0O101O000O1000000O100000E;G81000O10O100000O01000000O10O1000O100000O10O100000O01000000O10O1000O1^MnCVMR&lt;h2RDVMm;j2VDTMj;k2XDSMi;l2ZDRMf;l2^DRMb;m2aDQM_;n2dDoL];P3fDnLZ;Q3hDnLX;P3lDnLT;Q3oDmLQ;R3REkLo:T3TEjLl:U3WEiLi:W3XEhLh:W3[EfLf:Z3\\EdLd:\\3^EbLb:^3`E`L`:`3`E_La:a3`E^L`:a3bE^L^:b3cE]L]:c3dE[L]:e3dEZL\\:f3eEYL[:f3gEYLY:g3hEWLY:i3gEWLY:i3hEVLX:j3iEULW:k3jETLV:k3lESLU:m3lERLT:n3mEQLS:o3nEPLR:P4nEoKS:Q4nEnKR:Q4PFnKP:R4QFmKo9S4RFkKo9U4RFjKn9_4jE`KV:a4jE^KV:c4iE\\KX:e4hEZKX:g4hEXKX:i4hEVKX:k4hESKY:n4gEQKY:P5fEPKZ:Q5fEnJZ:S5fElJZ:U5fEiJ[:X5V21O1O1O001O1O001O1O001O1O001O1O001O1O001O1O001O1O001O10O01O00001O010O0010O2O2M2O2M3N1N3M2O0O100O100O10O0100O100O100O00100O100O100O010O100O100O1O010O100O100O100fMo@C[?0k@N^?Eh@8b?[Od@c0e?POa@m0i?fN]@X1l?[NZ@b1Ta0N2O1N2O1N2O1N2N2N2N2N2N2N2L4J6J6I7JoYa5&quot;</span>&#125;,<span class="string">&quot;score&quot;</span>:<span class="number">0.726</span>&#125;,&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">74</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">18</span>,<span class="string">&quot;segmentation&quot;</span>:&#123;<span class="string">&quot;size&quot;</span>:[<span class="number">426</span>,<span class="number">640</span>],<span class="string">&quot;counts&quot;</span>:<span class="string">&quot;^nT11X=3M2N2N2N3N1O1O0000000O1000000O1O100O1O100M3K4L5N2N2N2O1N2N2N2O1O1O001O100O1O1O001O1O01O001O000100O1O2O0O100O2N10O0100O2O001N2O1O0O2O1O0O2O1O1O1N2O1O1N101O1N2O1O1O1O1O10O0000000000000001OO1O1O1O2N10000O10000O1DVEXNj:h1YEWNe:i1]EoMi:P29000000O2O000O1000000000000000000000000001O0000001O0000001O000O101O00001O000000001O0O100000000000001O00000O10000000001N10000O10000O10001O0O10000O1000001N10000000001N100000000O101O2N1O1O1N2O1O1O1O1O001N101O00001O00000000000O101O0001O0000001O001O1O1N2N2N2M3N1O2N3J5K5K5N2O1O1O2M3N2N2M3N2O1N2N2O1N2N2O1N4M0O1O2O0O1O101N1O100O2N1O100O1O100O1O100O1000000O1O100O1O1O1O001O1O1O101NeTZ3&quot;</span>&#125;,<span class="string">&quot;score&quot;</span>:<span class="number">0.546</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">74</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">2</span>,<span class="string">&quot;segmentation&quot;</span>:&#123;<span class="string">&quot;size&quot;</span>:[<span class="number">426</span>,<span class="number">640</span>],<span class="string">&quot;counts&quot;</span>:<span class="string">&quot;`1b2&lt;c1k5]NTJe1k5ZNUJh1i5YNVJi1i5VNXJk1g5UNXJm1f5SNZJo1e5QNZJR2d5k2O1N2O1O1N2N2N2N3M2M3N2N2N2N2N2M3N3M2N2N2N2M2N2N3M2N2N2NhGQLZ7l3eHXLZ7g3cH^L\\7b3cH`L\\7_3dHcL\\7\\3cHfL\\7Z3cHhL\\7X3cHjL\\7U3dHmL\\7R3dHnL\\7R3cHSMY7l2gH[MS7e2lHbMo6]2PIjMj6V2UIRNd6m1\\IZN^6f1aIaNZ6^1fIhNHiMl5_3ZJ[Oe5d0[J]Oe5c0ZJ_Oe5a0YJBg5=XJDh5&lt;WJFh5:VJIi57VJKj54UJMk53SJ0l50SJ2l5NSJ3n5e3O1O0O2O1N101N2O1O1N2O1N2O1N2N2N2M2O2N1O2N1O2M2O1O2O0O2O001O1N2O1O1O001N2O1O1O1N2O1O1O1N2O1O1O1N2O2N1O1O1N3N1O1O1N2O2N1O1N2O2N1O1N2M3N3L3N2M3M5L4K5L4K5KYo^6&quot;</span>&#125;,<span class="string">&quot;score&quot;</span>:<span class="number">0.3</span>&#125;,&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">74</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">1</span>,<span class="string">&quot;segmentation&quot;</span>:&#123;<span class="string">&quot;size&quot;</span>:[<span class="number">426</span>,<span class="number">640</span>],<span class="string">&quot;counts&quot;</span>:<span class="string">&quot;Yek3&gt;h&lt;;G6CROUDR1f;SOUDS1g;;M3M3M10N106[Oa0G8M3M4M7J7HkRW4&quot;</span>&#125;,<span class="string">&quot;score&quot;</span>:<span class="number">0.407</span>&#125;,&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">74</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">1</span>,<span class="string">&quot;segmentation&quot;</span>:&#123;<span class="string">&quot;size&quot;</span>:[<span class="number">426</span>,<span class="number">640</span>],<span class="string">&quot;counts&quot;</span>:<span class="string">&quot;YoX42V=5K3M3N2HE^C=a&lt;72M3N1O1L4L4Khkk3&quot;</span>&#125;,<span class="string">&quot;score&quot;</span>:<span class="number">0.611</span>&#125;]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>keypoints</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">136</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">1</span>,<span class="string">&quot;keypoints&quot;</span>:[<span class="number">36</span>,<span class="number">181</span>,<span class="number">2</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">35</span>,<span class="number">166</span>,<span class="number">2</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">8</span>,<span class="number">171</span>,<span class="number">2</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">2</span>,<span class="number">246</span>,<span class="number">2</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>,<span class="number">20.25</span>,<span class="number">191</span>,<span class="number">0</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.897</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">136</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">1</span>,<span class="string">&quot;keypoints&quot;</span>:[<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>,<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>,<span class="number">50</span>,<span class="number">103</span>,<span class="number">2</span>,<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>,<span class="number">42</span>,<span class="number">102</span>,<span class="number">2</span>,<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>,<span class="number">20</span>,<span class="number">176</span>,<span class="number">1</span>,<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>,<span class="number">12</span>,<span class="number">265</span>,<span class="number">1</span>,<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>,<span class="number">41</span>,<span class="number">340</span>,<span class="number">1</span>,<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>,<span class="number">30</span>,<span class="number">340</span>,<span class="number">1</span>,<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>,<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>,<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>,<span class="number">32.5</span>,<span class="number">221</span>,<span class="number">0</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.664</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">139</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">1</span>,<span class="string">&quot;keypoints&quot;</span>:[<span class="number">429</span>,<span class="number">170</span>,<span class="number">1</span>,<span class="number">431</span>,<span class="number">169</span>,<span class="number">2</span>,<span class="number">442.4</span>,<span class="number">216.266666667</span>,<span class="number">0</span>,<span class="number">436</span>,<span class="number">168</span>,<span class="number">2</span>,<span class="number">442.4</span>,<span class="number">216.266666667</span>,<span class="number">0</span>,<span class="number">443</span>,<span class="number">177</span>,<span class="number">2</span>,<span class="number">448</span>,<span class="number">177</span>,<span class="number">2</span>,<span class="number">439</span>,<span class="number">200</span>,<span class="number">2</span>,<span class="number">432</span>,<span class="number">206</span>,<span class="number">2</span>,<span class="number">432</span>,<span class="number">220</span>,<span class="number">2</span>,<span class="number">422</span>,<span class="number">215</span>,<span class="number">2</span>,<span class="number">447</span>,<span class="number">226</span>,<span class="number">2</span>,<span class="number">454</span>,<span class="number">223</span>,<span class="number">2</span>,<span class="number">449</span>,<span class="number">260</span>,<span class="number">2</span>,<span class="number">456</span>,<span class="number">257</span>,<span class="number">2</span>,<span class="number">457</span>,<span class="number">290</span>,<span class="number">2</span>,<span class="number">461</span>,<span class="number">286</span>,<span class="number">2</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.771</span>&#125;,</span><br><span class="line">&#123;<span class="string">&quot;image_id&quot;</span>:<span class="number">192</span>,<span class="string">&quot;category_id&quot;</span>:<span class="number">1</span>,<span class="string">&quot;keypoints&quot;</span>:[<span class="number">427.583333333</span>,<span class="number">353.416666667</span>,<span class="number">0</span>,<span class="number">427.583333333</span>,<span class="number">353.416666667</span>,<span class="number">0</span>,<span class="number">427.583333333</span>,<span class="number">353.416666667</span>,<span class="number">0</span>,<span class="number">424</span>,<span class="number">281</span>,<span class="number">2</span>,<span class="number">447</span>,<span class="number">284</span>,<span class="number">2</span>,<span class="number">406</span>,<span class="number">301</span>,<span class="number">2</span>,<span class="number">464</span>,<span class="number">312</span>,<span class="number">2</span>,<span class="number">370</span>,<span class="number">333</span>,<span class="number">2</span>,<span class="number">481</span>,<span class="number">350</span>,<span class="number">2</span>,<span class="number">393</span>,<span class="number">351</span>,<span class="number">2</span>,<span class="number">462</span>,<span class="number">372</span>,<span class="number">2</span>,<span class="number">408</span>,<span class="number">382</span>,<span class="number">2</span>,<span class="number">441</span>,<span class="number">387</span>,<span class="number">2</span>,<span class="number">400</span>,<span class="number">440</span>,<span class="number">2</span>,<span class="number">435</span>,<span class="number">448</span>,<span class="number">2</span>,<span class="number">427.583333333</span>,<span class="number">353.416666667</span>,<span class="number">0</span>,<span class="number">427.583333333</span>,<span class="number">353.416666667</span>,<span class="number">0</span>],<span class="string">&quot;score&quot;</span>:<span class="number">0.376</span>&#125;]</span><br></pre></td></tr></table></figure>
+<h3 id="COCO-Eval的评估结果">COCO Eval的评估结果</h3>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">------------------------------------------------------------------------------</span><br><span class="line">type=segm</span><br><span class="line">Running per image evaluation...      DONE (t=0.45s).</span><br><span class="line">Accumulating evaluation results...   DONE (t=0.08s).</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.320</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.562</span><br><span class="line"> Average Precision (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.299</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.387</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.310</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.327</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.268</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.415</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.417</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.469</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.377</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.381</span><br><span class="line"></span><br><span class="line">------------------------------------------------------------------------------</span><br><span class="line">type=bbox</span><br><span class="line">Running per image evaluation...      DONE (t=0.34s).</span><br><span class="line">Accumulating evaluation results...   DONE (t=0.08s).</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.505</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.697</span><br><span class="line"> Average Precision (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.573</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.586</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.519</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.501</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.387</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.594</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.595</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.640</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.566</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.564</span><br><span class="line"></span><br><span class="line">------------------------------------------------------------------------------</span><br><span class="line">type=keypoints</span><br><span class="line">Running per image evaluation...      DONE (t=0.06s).</span><br><span class="line">Accumulating evaluation results...   DONE (t=0.00s).</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.372</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.636</span><br><span class="line"> Average Precision (AP) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.348</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.384</span><br><span class="line"> Average Precision (AP) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.386</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 20 ] = 0.514</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50      | area=   all | maxDets= 20 ] = 0.734</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.75      | area=   all | maxDets= 20 ] = 0.504</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area=medium | maxDets= 20 ] = 0.508</span><br><span class="line"> Average Recall    (AR) @[ IoU=0.50:0.95 | area= large | maxDets= 20 ] = 0.522</span><br></pre></td></tr></table></figure>
+<h3 id="使用COCO-API进行评估">使用COCO API进行评估</h3>
+<p>整体的评估代码如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pycocotools.coco <span class="keyword">import</span> COCO</span><br><span class="line"><span class="keyword">from</span> pycocotools.cocoeval <span class="keyword">import</span> COCOeval</span><br><span class="line"></span><br><span class="line">cocoGt = COCO(<span class="string">&quot;GroundTruth.json&quot;</span>)</span><br><span class="line">cocoDt = cocoGt.loadRes(<span class="string">&quot;result.json&quot;</span>)  <span class="comment"># 加载我们模型输出的结果文件</span></span><br><span class="line">cocoEval = COCOeval(cocoGt, cocoDt, <span class="string">&quot;bbox&quot;</span>)  <span class="comment"># 传入bbox表示做检测指标的计算</span></span><br><span class="line">cocoEval.evaluate()  <span class="comment"># 测试单张图的结果</span></span><br><span class="line">cocoEval.accumulate()  <span class="comment"># 将所有图的测试结果累积</span></span><br><span class="line">cocoEval.summarize()  <span class="comment"># 打印测试结果</span></span><br></pre></td></tr></table></figure>
+<h2 id="Reference">Reference</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/134236324">用于COCO API测试的结果的文件格式</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/134229574">使用COCO API评估模型在COCO数据集上的结果</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42899627/article/details/120689553">修改COCO评价指标 maxDets=[10,15,20]</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Object-Detection/" rel="tag"># Object Detection</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/07/pytorch-dataset-sampler-1/" rel="prev" title="Detectron2: Pytorch Dataset & Sampler (1)">
+      <i class="fa fa-chevron-left"></i> Detectron2: Pytorch Dataset & Sampler (1)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/10/pytorch-dataset-sampler-2/" rel="next" title="Detectron2: Pytorch Dataset & Sampler (2)">
+      Detectron2: Pytorch Dataset & Sampler (2) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E4%BA%8ECOCO-API%E6%B5%8B%E8%AF%95%E7%9A%84%E7%BB%93%E6%9E%9C%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.1.</span> <span class="nav-text">用于COCO API测试的结果文件格式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#captions"><span class="nav-number">1.1.1.</span> <span class="nav-text">captions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#object-detection"><span class="nav-number">1.1.2.</span> <span class="nav-text">object detection</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Instance-Segmentation-Key-Points"><span class="nav-number">1.1.3.</span> <span class="nav-text">Instance Segmentation &amp; Key Points</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#COCO-Eval%E7%9A%84%E8%AF%84%E4%BC%B0%E7%BB%93%E6%9E%9C"><span class="nav-number">1.2.</span> <span class="nav-text">COCO Eval的评估结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8COCO-API%E8%BF%9B%E8%A1%8C%E8%AF%84%E4%BC%B0"><span class="nav-number">1.3.</span> <span class="nav-text">使用COCO API进行评估</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">60</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">239k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">3:37</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
