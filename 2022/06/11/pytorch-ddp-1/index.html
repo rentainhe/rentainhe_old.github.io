@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文主要学习Pytorch进程间的通信相关的知识, 包括以下内容:  使用Pytorch创建多进程, 并打印基本信息 dist.gather的用法 dist.all_gather的用法 dist.reduce &amp; dist.all_reduce的用法 dist.broadcast &amp; dist.scatter的用法 dist.gather_object的用法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Detectron2: Pytorch DDP (1)">
+<meta property="og:url" content="http://example.com/2022/06/11/pytorch-ddp-1/index.html">
+<meta property="og:site_name" content="RenTianhe&#39;s Blog">
+<meta property="og:description" content="本文主要学习Pytorch进程间的通信相关的知识, 包括以下内容:  使用Pytorch创建多进程, 并打印基本信息 dist.gather的用法 dist.all_gather的用法 dist.reduce &amp; dist.all_reduce的用法 dist.broadcast &amp; dist.scatter的用法 dist.gather_object的用法">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2022/06/11/pytorch-ddp-1/gather.jpg">
+<meta property="og:image" content="http://example.com/2022/06/11/pytorch-ddp-1/all_gather.png">
+<meta property="og:image" content="http://example.com/2022/06/11/pytorch-ddp-1/reduce.png">
+<meta property="og:image" content="http://example.com/2022/06/11/pytorch-ddp-1/all_reduce.png">
+<meta property="og:image" content="http://example.com/2022/06/11/pytorch-ddp-1/broadcast.png">
+<meta property="og:image" content="http://example.com/2022/06/11/pytorch-ddp-1/scatter.png">
+<meta property="article:published_time" content="2022-06-11T15:39:17.000Z">
+<meta property="article:modified_time" content="2022-06-11T16:28:37.409Z">
+<meta property="article:author" content="Ren Tianhe">
+<meta property="article:tag" content="Detectron2">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/06/11/pytorch-ddp-1/gather.jpg">
+
+<link rel="canonical" href="http://example.com/2022/06/11/pytorch-ddp-1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Detectron2: Pytorch DDP (1) | RenTianhe's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RenTianhe's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">A man is only as good as what he loves.</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories<span class="badge">15</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives<span class="badge">62</span></a>
+
+  </li>
+        <li class="menu-item menu-item-projects">
+
+    <a href="/projects/" rel="section"><i class="fab fa-github fa-fw"></i>projects</a>
+
+  </li>
+        <li class="menu-item menu-item-publications">
+
+    <a href="/publications/" rel="section"><i class="fa fa-book fa-fw"></i>publications</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/11/pytorch-ddp-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Ren Tianhe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RenTianhe's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Detectron2: Pytorch DDP (1)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-06-11 23:39:17" itemprop="dateCreated datePublished" datetime="2022-06-11T23:39:17+08:00">2022-06-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-06-12 00:28:37" itemprop="dateModified" datetime="2022-06-12T00:28:37+08:00">2022-06-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Detectron2/" itemprop="url" rel="index"><span itemprop="name">Detectron2</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbols count in article">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbols count in article: </span>
+              <span>5.1k</span>
+            </span>
+            <span class="post-meta-item" title="Reading time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Reading time &asymp;</span>
+              <span>5 mins.</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要学习Pytorch进程间的通信相关的知识, 包括以下内容:</p>
+<ul>
+<li>使用Pytorch创建多进程, 并打印基本信息</li>
+<li><code>dist.gather</code>的用法</li>
+<li><code>dist.all_gather</code>的用法</li>
+<li><code>dist.reduce</code> &amp; <code>dist.all_reduce</code>的用法</li>
+<li><code>dist.broadcast</code> &amp; <code>dist.scatter</code>的用法</li>
+<li><code>dist.gather_object</code>的用法</li>
+</ul>
+<span id="more"></span>
+<h2 id="Contents">Contents</h2>
+<ul>
+<li><a href="#contents">Contents</a>
+<ul>
+<li><a href="#pytorch%E5%88%9B%E5%BB%BA%E5%A4%9A%E8%BF%9B%E7%A8%8B">Pytorch创建多进程</a></li>
+<li><a href="#gather">gather</a></li>
+<li><a href="#all_gather">all_gather</a></li>
+<li><a href="#reduce--all_reduce">reduce &amp; all_reduce</a></li>
+<li><a href="#broadcast--scatter">broadcast &amp; scatter</a></li>
+</ul>
+</li>
+<li><a href="#reference">Reference</a></li>
+</ul>
+<h3 id="Pytorch创建多进程">Pytorch创建多进程</h3>
+<ul>
+<li>使用<code>torch.multiprocessing</code>创建多进程</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> torch.distributed <span class="keyword">as</span> dist</span><br><span class="line"><span class="keyword">import</span> torch.multiprocessing <span class="keyword">as</span> mp</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">rank, world_size</span>):</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;rank: <span class="subst">&#123;rank&#125;</span>, world_size: <span class="subst">&#123;world_size&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">init_process</span>(<span class="params">rank, world_size, main_fn</span>):</span></span><br><span class="line">    <span class="comment"># 我们使用的是env初始化方式，所以需要指定以下4个环境变量</span></span><br><span class="line">    os.environ[<span class="string">&quot;MASTER_ADDR&quot;</span>] = <span class="string">&quot;127.0.0.1&quot;</span></span><br><span class="line">    os.environ[<span class="string">&quot;MASTER_PORT&quot;</span>] = <span class="string">&quot;29500&quot;</span></span><br><span class="line">    os.environ[<span class="string">&quot;RANK&quot;</span>] = <span class="built_in">str</span>(rank)</span><br><span class="line">    os.environ[<span class="string">&quot;WORLD_SIZE&quot;</span>] = <span class="built_in">str</span>(world_size)</span><br><span class="line">    <span class="comment"># 一般分布式GPU训练使用nccl后端，分布式CPU训练使用gloo后端</span></span><br><span class="line">    dist.init_process_group(backend=<span class="string">&quot;nccl&quot;</span>, init_method=<span class="string">&quot;env://&quot;</span>)</span><br><span class="line">    <span class="comment"># 也可以使用tcp方式初始化，此时只需要指定rank和world_size参数即可，</span></span><br><span class="line">    <span class="comment"># 因为master_addr和master_port已经包含在tcp字符串中了。</span></span><br><span class="line">    <span class="comment"># 例子如下:</span></span><br><span class="line">    <span class="comment"># dist.init_process_group(</span></span><br><span class="line">    <span class="comment">#     backend=&quot;nccl&quot;, init_method=&quot;tcp://127.0.0.1:29500&quot;, rank=rank, world_size=world_size</span></span><br><span class="line">    <span class="comment"># )</span></span><br><span class="line">    main_fn(rank, world_size)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    <span class="comment"># 也可以用torch.distributed.launch或者mp.spawn创建多个进程</span></span><br><span class="line">    world_size = <span class="number">2</span></span><br><span class="line">    processes = []</span><br><span class="line">    mp.set_start_method(<span class="string">&quot;spawn&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> rank <span class="keyword">in</span> <span class="built_in">range</span>(world_size):</span><br><span class="line">        p = mp.Process(target=init_process, args=(rank, world_size, main))</span><br><span class="line">        p.start()</span><br><span class="line">        processes.append(p)</span><br><span class="line">    <span class="keyword">for</span> p <span class="keyword">in</span> processes:</span><br><span class="line">        p.join()</span><br></pre></td></tr></table></figure>
+<h3 id="gather">gather</h3>
+<p><code>dist.gather</code>方法的目的是<strong>将其他进程的数据收集到目标进程</strong>, 并返回一个<code>list</code>.</p>
+<img src="/2022/06/11/pytorch-ddp-1/gather.jpg" class>
+<p>以下是Torch官方关于<code>dist.gather</code>作用的描述:</p>
+<ul>
+<li>Gathers a list of tensors in a single process</li>
+<li><code>dist.gather(tensor, gather_list, dst=0)</code>, 其中<code>gather_list</code>需要在目标进程上<strong>初始化</strong>.</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_gather</span>(<span class="params">rank, world_size</span>):</span></span><br><span class="line">    <span class="comment"># 这里的data在rank 0上的值是: [1, 2]</span></span><br><span class="line">    <span class="comment"># data在rank 1上的值是: [3, 4]</span></span><br><span class="line">    data = torch.arange(<span class="number">2</span>, dtype=<span class="built_in">int</span>).to(rank) + <span class="number">1</span> + <span class="number">2</span> * rank</span><br><span class="line">    output_list = [torch.zeros(<span class="number">2</span>, dtype=<span class="built_in">int</span>).to(rank) <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>)]</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 必须在rank==0的时候传入output_list</span></span><br><span class="line">    dist.gather(data, output_list <span class="keyword">if</span> rank == <span class="number">0</span> <span class="keyword">else</span> <span class="literal">None</span>, dst=<span class="number">0</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;rank: <span class="subst">&#123;rank&#125;</span>, data: <span class="subst">&#123;output_list&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 这里我们打印output_list, 可以看出output_list相当于一个place holder, 形状必须和需要gather的tensor一致</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>output_list</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[tensor([<span class="number">0</span>, <span class="number">0</span>], device=<span class="string">&#x27;cuda:0&#x27;</span>), tensor([<span class="number">0</span>, <span class="number">0</span>], device=<span class="string">&#x27;cuda:0&#x27;</span>)]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[tensor([<span class="number">0</span>, <span class="number">0</span>], device=<span class="string">&#x27;cuda:1&#x27;</span>), tensor([<span class="number">0</span>, <span class="number">0</span>], device=<span class="string">&#x27;cuda:1&#x27;</span>)]</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">rank, world_size</span>):</span></span><br><span class="line">    <span class="keyword">if</span> rank == <span class="number">0</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;&gt;&gt;&gt;&gt;&gt; testing dist.gather()&quot;</span>)</span><br><span class="line">    test_gather(rank, world_size)</span><br></pre></td></tr></table></figure>
+<p>终端输出如下:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt;&gt;&gt; testing dist.gather()</span></span><br><span class="line">rank: 1, data: [tensor([0, 0], device=&#x27;cuda:1&#x27;), tensor([0, 0], device=&#x27;cuda:1&#x27;)]</span><br><span class="line">rank: 0, data: [tensor([1, 2], device=&#x27;cuda:0&#x27;), tensor([3, 4], device=&#x27;cuda:0&#x27;)]</span><br></pre></td></tr></table></figure>
+<h3 id="all-gather">all_gather</h3>
+<p><code>dist.all_gather</code>相当于把所有进程的数据汇总后再分发给每个进程.</p>
+<img src="/2022/06/11/pytorch-ddp-1/all_gather.png" class>
+<p>修改main函数如下后执行相关代码:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_all_gather</span>(<span class="params">rank, world_size</span>):</span></span><br><span class="line">    <span class="comment"># 同样的数据分布, rank 0: [1, 2], rank 1: [3, 4]</span></span><br><span class="line">    data = torch.arange(<span class="number">2</span>, dtype=<span class="built_in">int</span>).to(rank) + <span class="number">1</span> + <span class="number">2</span> * rank</span><br><span class="line">    output_list = [torch.zeros(<span class="number">2</span>, dtype=<span class="built_in">int</span>).to(rank) <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(world_size)]</span><br><span class="line">    <span class="comment"># output_list同样也是place_holder的作用</span></span><br><span class="line">    dist.all_gather(output_list, data)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;rank: <span class="subst">&#123;rank&#125;</span>, data: <span class="subst">&#123;output_list&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">rank, world_size</span>):</span></span><br><span class="line">    <span class="keyword">if</span> rank == <span class="number">0</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;&gt;&gt;&gt;&gt;&gt; testing dist.all_gather()&quot;</span>)</span><br><span class="line">    test_all_gather(rank, world_size)</span><br></pre></td></tr></table></figure>
+<p>终端输出如下:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; testing dist.all_gather()</span></span><br><span class="line">rank: 0, data: [tensor([1, 2], device=&#x27;cuda:0&#x27;), tensor([3, 4], device=&#x27;cuda:0&#x27;)]</span><br><span class="line">rank: 1, data: [tensor([1, 2], device=&#x27;cuda:1&#x27;), tensor([3, 4], device=&#x27;cuda:1&#x27;)]</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>注意：rank 1上的&quot;cuda:1&quot;的数据，在分发给rank 0时，会将其移动到&quot;cuda:0&quot;</strong></li>
+</ul>
+<h3 id="reduce-all-reduce">reduce &amp; all_reduce</h3>
+<ul>
+<li><code>reduce</code>是将所有进程的数据加起来后发送给目标进程</li>
+</ul>
+<img src="/2022/06/11/pytorch-ddp-1/reduce.png" class>
+<p>测试代码:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_reduce</span>(<span class="params">rank, world_size</span>):</span></span><br><span class="line">    <span class="comment"># rank 0: [1, 2], rank 1: [3, 4]</span></span><br><span class="line">    data = torch.arange(<span class="number">2</span>, dtype=<span class="built_in">int</span>).to(rank) + <span class="number">1</span> + <span class="number">2</span> * rank</span><br><span class="line">    dist.reduce(data, dst=<span class="number">0</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;rank: <span class="subst">&#123;rank&#125;</span>, data: <span class="subst">&#123;data&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>输出内容:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt;&gt;&gt; testing dist.reduce()</span></span><br><span class="line">rank: 1, data: tensor([3, 4], device=&#x27;cuda:1&#x27;)</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> rank 0上的数据是 [1, 2] + [3, 4]</span></span><br><span class="line">rank: 0, data: tensor([4, 6], device=&#x27;cuda:0&#x27;)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>all_reduce</code>是将所有进程的值加起来后, 再分发给每个进程</li>
+</ul>
+<img src="/2022/06/11/pytorch-ddp-1/all_reduce.png" class>
+<p>测试代码:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_all_reduce</span>(<span class="params">rank, world_size</span>):</span></span><br><span class="line">    data = torch.arange(<span class="number">2</span>, dtype=<span class="built_in">int</span>).to(rank) + <span class="number">1</span> + <span class="number">2</span> * rank</span><br><span class="line">    dist.all_reduce(data)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;rank: <span class="subst">&#123;rank&#125;</span>, data: <span class="subst">&#123;data&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>输出结果:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt;&gt;&gt; testing dist.all_reduce()</span></span><br><span class="line">rank: 0, data: tensor([4, 6], device=&#x27;cuda:0&#x27;)</span><br><span class="line">rank: 1, data: tensor([4, 6], device=&#x27;cuda:1&#x27;)</span><br></pre></td></tr></table></figure>
+<h3 id="broadcast-scatter">broadcast &amp; scatter</h3>
+<ul>
+<li><code>broadcast</code>是将<strong>某个进程的数据分发给所有其他进程</strong></li>
+</ul>
+<img src="/2022/06/11/pytorch-ddp-1/broadcast.png" class>
+<p>测试代码:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_broadcast</span>(<span class="params">rank, world_size</span>):</span></span><br><span class="line">    data = torch.arange(<span class="number">2</span>, dtype=<span class="built_in">int</span>).to(rank) + <span class="number">1</span> + <span class="number">2</span> * rank</span><br><span class="line">    dist.broadcast(data, src=<span class="number">0</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;rank: <span class="subst">&#123;rank&#125;</span>, data: <span class="subst">&#123;data&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>输出结果:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt;&gt;&gt; testing dist.broadcast()</span></span><br><span class="line">rank: 0, data: tensor([1, 2], device=&#x27;cuda:0&#x27;)</span><br><span class="line">rank: 1, data: tensor([1, 2], device=&#x27;cuda:1&#x27;)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>scatter</code>是将某个进程的<strong>列表</strong>数据<strong>逐个分发</strong>给其他所有进程</li>
+</ul>
+<img src="/2022/06/11/pytorch-ddp-1/scatter.png" class>
+<p>测试代码:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_scatter</span>(<span class="params">rank, world_size</span>):</span></span><br><span class="line">    <span class="comment"># 创建一个list [1, 2]</span></span><br><span class="line">    scatter_list = [torch.Tensor([<span class="number">1</span>]).to(rank), torch.Tensor([<span class="number">2</span>]).to(rank)]</span><br><span class="line">    <span class="comment"># 创建一个数据来接受, 类似于place_holder</span></span><br><span class="line">    data = torch.zeros(<span class="number">1</span>).to(rank)</span><br><span class="line">    dist.scatter(data, scatter_list <span class="keyword">if</span> rank == <span class="number">0</span> <span class="keyword">else</span> <span class="literal">None</span>, src=<span class="number">0</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;rank: <span class="subst">&#123;rank&#125;</span>, data: <span class="subst">&#123;data&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>输出结果:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt;&gt;&gt; testing dist.scatter()</span></span><br><span class="line">rank: 1, data: tensor([2.], device=&#x27;cuda:1&#x27;)</span><br><span class="line">rank: 0, data: tensor([1.], device=&#x27;cuda:0&#x27;)</span><br></pre></td></tr></table></figure>
+<h2 id="Reference">Reference</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/518802196">PyTorch进程通信</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Detectron2/" rel="tag"># Detectron2</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/06/10/pytorch-dataset-sampler-3/" rel="prev" title="Detectron2: Pytorch Dataset & Sampler (3)">
+      <i class="fa fa-chevron-left"></i> Detectron2: Pytorch Dataset & Sampler (3)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/06/12/pytorch-ddp-2/" rel="next" title="Detectron2: Pytorch DDP (2)">
+      Detectron2: Pytorch DDP (2) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Pytorch%E5%88%9B%E5%BB%BA%E5%A4%9A%E8%BF%9B%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">Pytorch创建多进程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gather"><span class="nav-number">1.2.</span> <span class="nav-text">gather</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#all-gather"><span class="nav-number">1.3.</span> <span class="nav-text">all_gather</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reduce-all-reduce"><span class="nav-number">1.4.</span> <span class="nav-text">reduce &amp; all_reduce</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#broadcast-scatter"><span class="nav-number">1.5.</span> <span class="nav-text">broadcast &amp; scatter</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Ren Tianhe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/rentainhe" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;rentainhe" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/shi-zhi-tou-xi-de-yang-guang" title="ZhiHu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;shi-zhi-tou-xi-de-yang-guang" rel="noopener" target="_blank"><i class="fab fa-zhihu fa-fw"></i>ZhiHu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/596106517@qq.com" title="E-Mail → 596106517@qq.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ren Tianhe</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">Symbols count total: </span>
+    <span title="Symbols count total">244k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">Reading time total &asymp;</span>
+    <span title="Reading time total">3:42</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
