@@ -247,7 +247,7 @@
       
         <p>Pytorch笔记(4): 记录了pytorch中nn.Module的<code>named_parameters()</code>, <code>named_children()</code>, <code>named_modules</code>方法</p>
 <span id="more"></span>
-<h2 id="Contents">Contents</h2>
+<h2 id="Contents-51">Contents</h2>
 <ul>
 <li><a href="#contents">Contents</a>
 <ul>
@@ -302,7 +302,7 @@
 <p>调用<code>named_children()</code>输出内容如下:</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">net = BigNet()</span><br><span class="line"><span class="keyword">for</span> module <span class="keyword">in</span> net.named_children():</span><br><span class="line">    <span class="built_in">print</span>(module)</span><br></pre></td></tr></table></figure>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(<span class="string">&#x27;l1&#x27;</span>, MyLinear())</span><br><span class="line">(<span class="string">&#x27;net&#x27;</span>, Net(</span><br><span class="line">  (linear_0): MyLinear()</span><br><span class="line">  (linear_1): MyLinear()</span><br><span class="line">))</span><br></pre></td></tr></table></figure>
-<h2 id="Reference">Reference</h2>
+<h2 id="Reference-40">Reference</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/notes/modules.html">Pytorch Modules官方文档</a></li>
 <li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41563738/article/details/102942987">Module.named_parameters()、Module.named_children()与Module.named_modules()的区别</a></li>
@@ -390,7 +390,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#named-parameters"><span class="nav-number">1.1.</span> <span class="nav-text">named_parameters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Modules-vs-Building-Blocks"><span class="nav-number">1.2.</span> <span class="nav-text">Modules vs Building Blocks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#named-children"><span class="nav-number">1.3.</span> <span class="nav-text">named_children</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#named-modules"><span class="nav-number">1.4.</span> <span class="nav-text">named_modules</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#named-modules%E6%9B%B4%E5%A4%9Aexample"><span class="nav-number">1.5.</span> <span class="nav-text">named_modules更多example</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-51"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#named-parameters"><span class="nav-number">1.1.</span> <span class="nav-text">named_parameters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Modules-vs-Building-Blocks"><span class="nav-number">1.2.</span> <span class="nav-text">Modules vs Building Blocks</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#named-children"><span class="nav-number">1.3.</span> <span class="nav-text">named_children</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#named-modules"><span class="nav-number">1.4.</span> <span class="nav-text">named_modules</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#named-modules%E6%9B%B4%E5%A4%9Aexample"><span class="nav-number">1.5.</span> <span class="nav-text">named_modules更多example</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference-40"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

@@ -260,7 +260,7 @@
 <li>Pytorch中的<code>Map-style datasets</code> 和 <code>IterableDataset</code> 的简单理解</li>
 </ul>
 <span id="more"></span>
-<h2 id="Contents-5">Contents</h2>
+<h2 id="Contents-44">Contents</h2>
 <ul>
 <li><a href="#contents">Contents</a>
 <ul>
@@ -307,7 +307,7 @@
 <li><code>Map-style</code>: 需要实现<code>__getitem__()</code>以及<code>__len__()</code>方法, 通过在<code>__getitem__()</code>中传入index来得到对应index下的数据, 即<code>dataset[idx]</code>, 需要实现知道数据集的大小, 载入数据集的全部内容</li>
 <li><code>Iterable-style</code>: 无法事先知道数据集大小, 或者是数据集太大了一次性载入进来太消耗内存空间, 需要继承<code>IterableDataset</code>并实现<code>__iter__()</code>方法, 可以用<code>iter(dataset)</code>和<code>next()</code>来读取数据, 使用<code>IterableDataset</code>的时候, 获取数据的行为完全由用户定义, 所以不需要sampler</li>
 </ul>
-<h2 id="Reference-5">Reference</h2>
+<h2 id="Reference-34">Reference</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/346832873">Python 中 iterator 和 iterable 的区别是什么？</a></li>
 <li><a target="_blank" rel="noopener" href="https://nvie.com/posts/iterators-vs-generators/">Iterables vs. Iterators vs. Generators</a></li>
@@ -399,7 +399,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-5"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Iterable-vs-Iterator"><span class="nav-number">1.1.</span> <span class="nav-text">Iterable vs. Iterator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#yield%E5%85%B3%E9%94%AE%E5%AD%97"><span class="nav-number">1.2.</span> <span class="nav-text">yield关键字</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Map-style-datasets-Iterable-style-datasets"><span class="nav-number">1.3.</span> <span class="nav-text">Map-style datasets &amp; Iterable-style datasets</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference-5"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Contents-44"><span class="nav-number">1.</span> <span class="nav-text">Contents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Iterable-vs-Iterator"><span class="nav-number">1.1.</span> <span class="nav-text">Iterable vs. Iterator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#yield%E5%85%B3%E9%94%AE%E5%AD%97"><span class="nav-number">1.2.</span> <span class="nav-text">yield关键字</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Map-style-datasets-Iterable-style-datasets"><span class="nav-number">1.3.</span> <span class="nav-text">Map-style datasets &amp; Iterable-style datasets</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference-34"><span class="nav-number">2.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
